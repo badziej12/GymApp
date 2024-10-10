@@ -4,10 +4,13 @@ import React, { useRef, useState } from 'react'
 import ExpoStatusBar from 'expo-status-bar/build/ExpoStatusBar';
 import { Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/context/authContext';
+import { email } from '@sideway/address';
 
 export default function SignIn() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
 
   const emailRef = useRef("");
   const passwordRef = useRef("");
@@ -19,8 +22,11 @@ export default function SignIn() {
     }
 
     // login process
-    Alert.alert('Siema', "elo  " + emailRef.current);
-      return;
+    const response = await signIn(emailRef.current, passwordRef.current);
+    console.log("sign in response: ", response)
+    if (!response.success) {
+      Alert.alert('Sign In', response.msg);
+    }
   }
   return (
     <View className="flex-1">

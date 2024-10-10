@@ -1,22 +1,32 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  User,
+  signOut,
+  signInWithEmailAndPassword
+} from "firebase/auth"
+import { auth, db } from '@/firebaseConfig';
+import { addDoc, doc, setDoc } from '@firebase/firestore';
+import { ErrorData } from '@firebase/util';
 
 export const AuthContext = createContext<{
-  signIn: () => void;
-  signOut: () => void;
-  signUp: () => void;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; msg?: string }>;
+  logout: () => Promise<{ success: boolean; msg?: string; error?: string }>;
+  signUp: (email: string, password: string, username: string) => Promise<{ success: boolean; data?: User; msg?: string }>;
   session?: string | null;
   isAuthenticated: boolean;
 }>({
-  signIn: () => null,
-  signUp: () => null,
-  signOut: () => null,
+  signIn: async () => ({ success: false, msg: '' }),
+  signUp: async () => ({ success: false, msg: '' }),
+  logout: async () => ({ success: false, msg: '' , error: ''}),
   session: null,
   isAuthenticated: false,
 });
 
 export const useAuth = () => {
   const value = useContext(AuthContext);
-  if(!value) {
+  if (!value) {
     throw new Error('useSession must be wrapped in a <SessionProvider />');
   }
 
@@ -24,42 +34,64 @@ export const useAuth = () => {
 }
 
 export const AuthContextProvider = ({ children }: PropsWithChildren) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // on auth state changed
-    setTimeout(() => {
-      setIsAuthenticated(false);
-    }, 3000)
+    const unsub = onAuthStateChanged(auth, (user) => {
+      console.log('got user:', user);
+      if (user) {
+        setIsAuthenticated(true);
+        setUser(user);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    });
+    return unsub;
   }, []);
 
-  const signIn = async (email, passowrd) => {
+  const signIn = async (email: string, password: string) => {
     try {
-
-    } catch (e) {
-
+      const response = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
+    } catch (e: any) {
+      let msg = e.message;
+      if (msg.includes('(auth/invalid-email')) msg='Invalid email'
+      if (msg.includes('(auth/invalid-credential')) msg='Invalid credentials'
+      return { success: false, msg: msg }
     }
   }
 
-  const signOut = async () => {
+  const logout = async () => {
     try {
-
-    } catch (e) {
-
+      await signOut(auth);
+      return {success: true}
+    } catch (e: any) {
+      return {success: false, msg: e.message, error: e}
     }
   }
 
-  const signUp = async (email, passowrd, username, profileUrl) => {
+  const signUp = async (email: string, password: string, username: string) => {
     try {
-
-    } catch (e) {
-
+      const response = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('response.user : ', response?.user);
+      await setDoc(doc(db, "users", response?.user?.uid), {
+        username,
+        userId: response?.user?.uid
+      });
+      return {success: true, data: response?.user};
+    } catch (e: any) {
+      let msg = e.message;
+      if (msg.includes('(auth/invalid-email')) msg='Invalid email'
+      if (msg.includes('(auth/email-already-in-use')) msg='This email is already in use'
+      return {success: false, msg: msg}
     }
   }
 
   return (
-    <AuthContext.Provider value={{user, isAuthenticated, signIn, signUp, signOut}}>
+    <AuthContext.Provider value={{ user, isAuthenticated, logout, signUp, signIn }}>
       {children}
     </AuthContext.Provider>
   )

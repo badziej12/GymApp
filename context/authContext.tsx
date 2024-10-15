@@ -7,21 +7,29 @@ import {
   signInWithEmailAndPassword
 } from "firebase/auth"
 import { auth, db } from '@/firebaseConfig';
-import { addDoc, doc, setDoc } from '@firebase/firestore';
-import { ErrorData } from '@firebase/util';
+import { doc, setDoc, getDoc } from '@firebase/firestore';
+
+interface ExtendedUser extends User {
+  username?: string;
+  userId?: string;
+}
 
 export const AuthContext = createContext<{
   signIn: (email: string, password: string) => Promise<{ success: boolean; msg?: string }>;
   logout: () => Promise<{ success: boolean; msg?: string; error?: string }>;
   signUp: (email: string, password: string, username: string) => Promise<{ success: boolean; data?: User; msg?: string }>;
+  updateUserData: (userId: string) => Promise<void>;
   session?: string | null;
   isAuthenticated: boolean;
+  user?: ExtendedUser | null;
 }>({
   signIn: async () => ({ success: false, msg: '' }),
   signUp: async () => ({ success: false, msg: '' }),
   logout: async () => ({ success: false, msg: '' , error: ''}),
+  updateUserData: async () => {},
   session: null,
   isAuthenticated: false,
+  user: null,
 });
 
 export const useAuth = () => {
@@ -34,16 +42,17 @@ export const useAuth = () => {
 }
 
 export const AuthContextProvider = ({ children }: PropsWithChildren) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // on auth state changed
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, (user: ExtendedUser | User | null) => {
       console.log('got user:', user);
       if (user) {
         setIsAuthenticated(true);
         setUser(user);
+        updateUserData(user.uid);
       } else {
         setIsAuthenticated(false);
         setUser(null);
@@ -51,6 +60,17 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
     });
     return unsub;
   }, []);
+
+  const updateUserData = async (userId: string) => {
+    const docRef = doc(db, 'users', userId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()){
+      let data = docSnap.data();
+      let userData = user as ExtendedUser;
+      setUser({...userData, username: data.username, userId: data.userId});
+    }
+  }
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -91,7 +111,7 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, logout, signUp, signIn }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, logout, signUp, signIn, updateUserData }}>
       {children}
     </AuthContext.Provider>
   )

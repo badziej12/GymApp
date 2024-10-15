@@ -4,19 +4,20 @@ import { getAnalytics } from "firebase/analytics";
 import { getReactNativePersistence, initializeAuth } from "firebase/auth"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore, collection } from "firebase/firestore"
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCiO8RQtZSMvN50jvHAMH_BaQMTRWUFEe8",
-  authDomain: "gymapp-322c1.firebaseapp.com",
-  projectId: "gymapp-322c1",
-  storageBucket: "gymapp-322c1.appspot.com",
-  messagingSenderId: "615447296216",
-  appId: "1:615447296216:web:88867b3f463f369090ffad",
-  measurementId: "G-XZEC4W6HP8"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase

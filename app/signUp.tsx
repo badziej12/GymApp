@@ -47,6 +47,8 @@ export default function SignUp() {
                 onChangeText={value => emailRef.current = value}
                 style={{ fontSize: hp(2) }}
                 className="flex-1 font-semibold text-neutral-700"
+                inputMode={"email"}
+                autoCorrect={false}
                 placeholder="Email address"
                 placeholderTextColor={'gray'}/>
             </View>
@@ -71,6 +73,7 @@ export default function SignUp() {
                 onChangeText={value => passwordRef.current = value}
                 style={{ fontSize: hp(2) }}
                 className="flex-1 font-semibold text-neutral-700"
+                secureTextEntry={true}
                 placeholder="Password"
                 placeholderTextColor={'gray'}/>
             </View>

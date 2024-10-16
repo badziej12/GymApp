@@ -22,7 +22,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// const analytics = getAnalytics(app);
 
 export const auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage)
@@ -32,3 +32,4 @@ export const db = getFirestore(app);
 
 export const usersRef = collection(db, 'users');
 export const roomRef = collection(db, 'rooms');
+export const postsRef = collection(db, 'posts');

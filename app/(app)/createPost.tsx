@@ -37,6 +37,7 @@ export default function CreatePost() {
       await setDoc(docRef, {
         title: title,
         description: description,
+        author: user?.username,
         userId: user?.userId
       });
       return {success: true, title: title, description: description, userId: user?.userId};

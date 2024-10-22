@@ -1,6 +1,6 @@
 import { View, Text, Button, Pressable } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from "firebase/firestore"
+import { collection, getDocs, onSnapshot, doc } from "firebase/firestore"
 import { useAuth } from '@/context/authContext';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { useRouter } from 'expo-router';
@@ -16,22 +16,22 @@ export default function Home() {
     await logout();
   }
 
-  const getPosts = async () => {
-    const querySnapshot = await getDocs(collection(db, "posts"));
-    const postsArray: { title: string; description: string; author: string }[] = [];
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, " => ", doc.data());
-      postsArray.push({
-        title: doc.data().title,
-        description: doc.data().description,
-        author: "autor",
-      })
-    });
-    setPosts(postsArray);
-  }
 
   useEffect(() => {
-    getPosts();
+    const unsub = onSnapshot(collection(db, "posts"), (snapshot) => {
+      const postsArray: { title: string; description: string; author: string }[] = [];
+      snapshot.docs.forEach((doc) => {
+        console.log(doc.id, " => ", doc.data());
+        postsArray.push({
+          title: doc.data().title,
+          description: doc.data().description,
+          author: doc.data().author,
+        });
+      })
+      setPosts(postsArray);
+    });
+
+    return () => unsub();
   }, []);
 
   console.log("To user: ", user);

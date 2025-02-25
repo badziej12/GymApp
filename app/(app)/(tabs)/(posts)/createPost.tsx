@@ -21,7 +21,7 @@ export default function CreatePost() {
     }
     let response = await createPost(titleRef.current, descriptionRef.current);
     // login process
-    console.log("got result: ", response);
+    // console.log("got result: ", response);
     if(!response.success) {
       Alert.alert('Create Post', response.msg);
     }

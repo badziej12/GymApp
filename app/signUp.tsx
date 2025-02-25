@@ -22,7 +22,7 @@ export default function SignUp() {
     }
     let response = await signUp(emailRef.current, passwordRef.current, usernameRef.current);
     // login process
-    console.log("got result: ", response);
+    // console.log("got result: ", response);
     if(!response.success) {
       Alert.alert('Sign Up', response.msg);
     }

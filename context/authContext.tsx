@@ -95,10 +95,11 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
   const signUp = async (email: string, password: string, username: string) => {
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('response.user : ', response?.user);
+      // console.log('response.user : ', response?.user);
       await setDoc(doc(db, "users", response?.user?.uid), {
         username,
-        userId: response?.user?.uid
+        userId: response?.user?.uid,
+        groups: [],
       });
       return {success: true, data: response?.user};
     } catch (e: any) {

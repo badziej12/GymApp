@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, Pressable, Alert } from 'react-native'
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import React, { useRef, useState } from 'react'
-import ExpoStatusBar from 'expo-status-bar/build/ExpoStatusBar';
+import { StatusBar } from 'expo-status-bar';
 import { Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import CustomKeyboardView from '@/components/CustomKeyboardView';
@@ -30,7 +30,7 @@ export default function SignUp() {
   return (
     <CustomKeyboardView>
       <View className="flex-1">
-        <ExpoStatusBar style="dark"/>
+        <StatusBar style="light" />
         <View style={{ paddingTop: hp(20), paddingHorizontal: wp(5) }}
               className="flex-1 gap-12">
           <Text style={{ fontSize: hp(4) }}

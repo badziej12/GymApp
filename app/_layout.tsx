@@ -1,4 +1,4 @@
-import { router, Slot, useSegments } from "expo-router";
+import { RelativePathString, router, Slot, useSegments } from "expo-router";
 
 // Import your global CSS file
 import "../global.css"
@@ -15,7 +15,7 @@ const MainLayout = () => {
     const inApp = segments[0] == '(app)';
     if (isAuthenticated && !inApp) {
       // redirect to home
-      router.replace('/(app)');
+      router.replace('/(app)' as RelativePathString);
     } else if(!isAuthenticated) {
       // redirect to sign
       router.replace('/signIn');

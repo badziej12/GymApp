@@ -1,11 +1,10 @@
-import { View, Text, StatusBar, TextInput, TouchableOpacity, Pressable, Alert } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, Pressable, Alert } from 'react-native'
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import React, { useRef, useState } from 'react'
-import ExpoStatusBar from 'expo-status-bar/build/ExpoStatusBar';
+import {StatusBar} from 'expo-status-bar';
 import { Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/authContext';
-import { email } from '@sideway/address';
 
 export default function SignIn() {
   const router = useRouter();
@@ -30,7 +29,7 @@ export default function SignIn() {
   }
   return (
     <View className="flex-1">
-      <ExpoStatusBar style="dark" />
+      <StatusBar style={"light"} />ż
       <View style={{paddingTop: hp(20), paddingHorizontal: wp(5)}} className="flex-1 gap-12">
         <Text style={{fontSize: hp(4)}} className="font-bold tracking-wider text-center text-black">
           Sign in

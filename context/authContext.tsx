@@ -46,9 +46,8 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // on auth state changed
     const unsub = onAuthStateChanged(auth, (user: ExtendedUser | User | null) => {
-      // console.log('got user:', user);
+
       if (user) {
         setIsAuthenticated(true);
         setUser(user);

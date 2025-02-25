@@ -8,7 +8,7 @@ import { HomeHeader } from '@/components/HomeHeader';
 export default function _layout() {
   return (
     <Stack>
-      <Stack.Screen name="index" options={{header: () => <HomeHeader title="Posts" />}} />
+      <Stack.Screen name="index" options={{header: () => <HomeHeader title="Home" />}} />
       <Stack.Screen name="createPost" options={{ header: () => <HomeHeader title="Create posts" /> }} />
     </Stack>
   )

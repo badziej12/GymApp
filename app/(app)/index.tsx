@@ -6,6 +6,7 @@ import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-nativ
 import { useRouter } from 'expo-router';
 import { Post } from '@/components/Post';
 import { db } from '@/firebaseConfig';
+import { ProfileCard } from '@/components/ProfileCard';
 
 export default function Home() {
   const router = useRouter();
@@ -40,11 +41,11 @@ export default function Home() {
     <View style={{paddingTop: 40}} className="flex-1 bg-white px-5">
       <View className="flex-1">
         <View className="mb-5">
-          <Text className="font-semibold" style={{fontSize: hp(3)}}>Witaj {user?.username}!</Text>
+          <ProfileCard />
         </View>
         <View className="flex-col gap-5">
-          {posts.map((post) => {
-            return <Post postTitle={post.title} postCopy={post.description} author={post.author} />
+          {posts.map((post, index) => {
+            return <Post key={index} postTitle={post.title} postCopy={post.description} author={post.author} />
           })}
         </View>
       </View>

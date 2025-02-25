@@ -1,11 +1,9 @@
-import { useRef, useState } from 'react';
-import { View, Text, Button, Pressable, SafeAreaView, TextInput, Alert } from 'react-native';
+import { useRef } from 'react';
+import { View, Text, Pressable, SafeAreaView, TextInput, Alert } from 'react-native';
 import { useAuth } from '@/context/authContext';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { useRouter } from 'expo-router';
-import { Post } from '@/components/Post';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '@/firebaseConfig';
+import { db } from '@/firebaseConfig';
 import { doc, setDoc } from '@firebase/firestore';
 
 export default function CreatePost() {
@@ -78,7 +76,7 @@ export default function CreatePost() {
       </View>
 
       <View className="px-5 flex-row gap-2.5" style={{marginBottom: hp(5)}}>
-        <Pressable onPress={() => router.dismiss(1)} style={{height: hp(6.5)}} className="bg-indigo-300 flex-grow rounded-xl justify-center">
+        <Pressable onPress={() => { console.log(router); router.dismiss(1);}} style={{height: hp(6.5)}} className="bg-indigo-300 flex-grow rounded-xl justify-center">
           <Text className="text-white font-bold tracking-wider text-center">Go back</Text>
         </Pressable>
         <Pressable onPress={handleCreatePost} style={{height: hp(6.5)}} className="bg-indigo-500 flex-grow rounded-xl justify-center">

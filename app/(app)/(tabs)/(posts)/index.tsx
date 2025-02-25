@@ -13,7 +13,7 @@ export default function Posts() {
         const unsub = onSnapshot(collection(db, "posts"), (snapshot) => {
             const postsArray: { title: string; description: string; author: string }[] = [];
             snapshot.docs.forEach((doc) => {
-            console.log(doc.id, " => ", doc.data());
+            // console.log(doc.id, " => ", doc.data());
             postsArray.push({
                 title: doc.data().title,
                 description: doc.data().description,
@@ -25,8 +25,6 @@ export default function Posts() {
 
         return () => unsub();
     }, []);
-
-    console.log(posts);
 
     return (
         <View className="flex-1 bg-white">

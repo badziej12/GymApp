@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { View, Text, Pressable, SafeAreaView, TextInput, Alert } from 'react-native';
 import { useAuth } from '@/context/authContext';
-import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { useRouter } from 'expo-router';
 import { db } from '@/firebaseConfig';
 import { doc, setDoc } from '@firebase/firestore';

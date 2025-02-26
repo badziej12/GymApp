@@ -1,5 +1,5 @@
 import { createContext, FC, ReactNode, useContext } from "react";
-import { addDoc, arrayUnion, doc, getDocs, query, runTransaction, serverTimestamp, setDoc, where } from "firebase/firestore";
+import { arrayUnion, doc, getDocs, query, runTransaction, serverTimestamp, setDoc, where } from "firebase/firestore";
 import { db, groupsRef, usersRef } from "@/firebaseConfig";
 
 type GroupsContextType = {
@@ -25,8 +25,6 @@ export const GroupsProvider: FC<GroupsProviderProps> = ({children}) => {
 
     const createGroup = async (groupName: string, userId: string) => {
         try {
-            // console.log(userId);
-            // console.log(groupName);
             const groupQuery = query(groupsRef, where("name", "==", groupName));
             const querySnapshot = await getDocs(groupQuery);
 

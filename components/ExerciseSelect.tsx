@@ -1,16 +1,50 @@
 import { FontAwesome } from '@expo/vector-icons';
-import { FC, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
 import { ExerciseDetails } from './ExerciseDetails';
+import { FullExerciseRefType, SeriesType } from '@/app/(app)/addTraining';
+
 
 type ExerciseSelectProps = {
     trainings: string[];
     onRemove: () => void;
 }
 
-export const ExerciseSelect: FC<ExerciseSelectProps> = ({trainings, onRemove}) => {
+export const ExerciseSelect = forwardRef<{ getExercise: () => FullExerciseRefType | null }, ExerciseSelectProps>(({trainings, onRemove}, ref) => {
     const [selectedTraining, setSelectedTraining] = useState('');
+    const fullExerciseRef = useRef<FullExerciseRefType | null>(null);
+    const exerciseDetailsRef = useRef<{ getReps: () => string[], getWeights: () => string[] } | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        getExercise: () => showRef()
+    }));
+
+    const showRef = () => {
+        if (exerciseDetailsRef.current) {
+            const reps = exerciseDetailsRef.current.getReps();
+            const weights = exerciseDetailsRef.current.getWeights();
+
+            const series: SeriesType[] = [];
+
+            for (let i = 0; i < reps.length; i++) {
+                if (weights[i] && reps[i]) {
+                    series.push({reps: reps[i], weight: weights[i]});
+                }
+            }
+
+            if (series.length > 0) {
+                fullExerciseRef.current = {
+                    exerciseName: selectedTraining,
+                    series: series
+                };
+            }
+
+            return fullExerciseRef.current;
+        } else {
+            return null;
+        }
+    };
 
     return (
         <View className='flex-col mb-10'>
@@ -22,7 +56,7 @@ export const ExerciseSelect: FC<ExerciseSelectProps> = ({trainings, onRemove}) =
                     }}
                     renderButton={(selectedItem, isOpened) => {
                         return (
-                            <View className="relative bg-slate-300 rounded-xl items-center py-4 flex-row justify-center border-2 flex-grow">
+                            <View className="relative bg-blue-400 rounded-xl items-center py-4 flex-row justify-center border-2 flex-grow">
                                 <Text className="font-medium">
                                     {(selectedItem && selectedItem) || 'Wybierz ćwiczenie'}
                                 </Text>
@@ -42,10 +76,10 @@ export const ExerciseSelect: FC<ExerciseSelectProps> = ({trainings, onRemove}) =
                     <FontAwesome size={28} name={"remove"} color={"white"} />
                 </Pressable>
             </View>
-            {selectedTraining && <ExerciseDetails />}
+            {selectedTraining && <ExerciseDetails ref={exerciseDetailsRef} />}
         </View>
     );   
-}
+});
 
 const styles = StyleSheet.create({
     selectArrow: {

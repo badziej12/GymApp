@@ -76,7 +76,7 @@ export default function CreatePost() {
       </View>
 
       <View className="px-5 flex-row gap-2.5" style={{marginBottom: hp(5)}}>
-        <Pressable onPress={() => { console.log(router); router.dismiss(1);}} style={{height: hp(6.5)}} className="bg-indigo-300 flex-grow rounded-xl justify-center">
+        <Pressable onPress={() =>  router.dismiss(1)} style={{height: hp(6.5)}} className="bg-indigo-300 flex-grow rounded-xl justify-center">
           <Text className="text-white font-bold tracking-wider text-center">Go back</Text>
         </Pressable>
         <Pressable onPress={handleCreatePost} style={{height: hp(6.5)}} className="bg-indigo-500 flex-grow rounded-xl justify-center">

@@ -21,8 +21,13 @@ export default function Home() {
       </View>
       <View className='px-5 flex-1'>
         <View className="flex-1">
-          <View className="mb-5">
+          {/* <View className="mb-5">
             <ProfileCard />
+          </View> */}
+          <View className='mb-5'>
+            <Pressable onPress={() => router.push("/addTraining")} className='border-black border-2 border-b-8 flex-col items-center justify-center h-32 bg-amber-500 rounded-xl'>
+              <Text className='text-black uppercase' style={{fontWeight: "bold", fontSize: hp(2)}}>Dodaj trening</Text>
+            </Pressable>
           </View>
         </View>
         <View className="px-5 flex-row gap-2.5" style={{marginBottom: hp(5)}}>

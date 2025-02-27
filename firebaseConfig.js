@@ -33,3 +33,4 @@ export const db = getFirestore(app);
 export const usersRef = collection(db, 'users');
 export const groupsRef = collection(db, 'groups');
 export const postsRef = collection(db, 'posts');
+export const trainingsRef = collection(db, 'trainings');

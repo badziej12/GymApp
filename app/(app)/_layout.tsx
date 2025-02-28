@@ -9,6 +9,7 @@ export default function _layout() {
     <DateContextProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+        <Stack.Screen name="addTraining" options={{headerShown: false}} />
       </Stack>
     </DateContextProvider>
   )

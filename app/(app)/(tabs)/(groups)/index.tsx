@@ -8,7 +8,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { groupsRef, usersRef } from "@/firebaseConfig";
 
 export default function Groups() {
-    const [groups, setGroups] = useState<{ name: string; members: string[]; groupSize: number }[]>([]);
+    const [groups, setGroups] = useState<{ name: string; members: string[]; groupSize: number, groupId: string }[]>([]);
 
     const { user } = useAuth();
     
@@ -27,6 +27,7 @@ export default function Groups() {
 
                     const groupName = groupSnap.get("name");
                     const groupSize = groupSnap.get("members").length;
+
                     const members = await Promise.all(groupSnap.get("members").map(async (memberId: string) => {
                         const memberRef = doc(usersRef, memberId);
                         const memberSnap = await getDoc(memberRef);
@@ -36,7 +37,7 @@ export default function Groups() {
                         }
                     }));
         
-                    return groupSnap.exists() ? { name: groupName, groupSize: groupSize, members: members } : null;
+                    return groupSnap.exists() ? { name: groupName, groupSize: groupSize, members: members, groupId: groupId } : null;
                 }));
 
                 console.log(groupDetails);
@@ -57,7 +58,7 @@ export default function Groups() {
                 <ScrollView style={{paddingTop: 40}} className="flex-1 px-5">
                     <View className="flex-col gap-5">
                         {groups.map(group => 
-                            <GroupCard key={group.name} name={group.name} members={group.members} groupSize={group.groupSize} />
+                            <GroupCard key={group.name} name={group.name} members={group.members} groupSize={group.groupSize} groupId={group.groupId} />
                         )}
                     </View>
                 </ScrollView>

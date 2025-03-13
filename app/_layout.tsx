@@ -4,8 +4,6 @@ import { RelativePathString, router, Slot, useSegments } from "expo-router";
 import "../global.css"
 import { AuthContextProvider, useAuth } from '@/context/authContext';
 import { useEffect } from 'react';
-import { GroupsProvider } from "@/context/groupsContext";
-import { DateContextProvider } from "@/context/dateContext";
 
 const MainLayout = () => {
   const {isAuthenticated} = useAuth();
@@ -30,9 +28,7 @@ const MainLayout = () => {
 export default function RootLayout() {
   return (
     <AuthContextProvider>
-        <GroupsProvider>
-          <MainLayout />
-        </GroupsProvider>
+        <MainLayout />
     </AuthContextProvider>
   )
 }

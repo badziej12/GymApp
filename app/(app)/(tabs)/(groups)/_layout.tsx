@@ -8,6 +8,8 @@ export default function _layout() {
     <Stack>
       <Stack.Screen name="index" options={{headerShown: false}} />
       <Stack.Screen name="createGroup" options={{headerShown: false}} />
+      <Stack.Screen name="groups/[id]" options={{headerShown: false}} />
+      <Stack.Screen name="groups/addMember" options={{presentation: 'modal', headerShown: false}} />
     </Stack>
   )
 }

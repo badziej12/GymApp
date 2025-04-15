@@ -14,11 +14,20 @@ export default function GroupScreen() {
     useEffect(() => {
         const getGroupData = async () => {
             await fetchGroupData(id);
-            await getTrainingsByExercise("Martwy ciąg");
         };
 
         getGroupData();
     }, []);
+
+    useEffect(() => {
+        const getBestScoreMember = async () => {
+            if (group) {
+                await getTrainingsByExercise("Martwy ciąg");
+            }
+        }
+
+        getBestScoreMember();
+    }, [group]);
 
     return (
         <SafeAreaView className="flex-1 h-full">

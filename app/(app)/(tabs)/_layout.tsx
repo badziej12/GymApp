@@ -1,4 +1,4 @@
-import { Slot, Stack, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 
 // Import your global CSS file
 import "../../../global.css"
@@ -10,14 +10,14 @@ export default function _layout() {
       <Tabs.Screen
         name="(groups)"
         options={{
-          title: 'Groups',
+          headerShown: false,
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} />,
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          headerShown: false,
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />,
         }}
       />

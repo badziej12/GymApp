@@ -9,7 +9,6 @@ import { useAuth } from "@/context/authContext";
 
 export default function _layout() {
   const { user } = useAuth();
-  console.log(user);
 
   return (
     <DateContextProvider>

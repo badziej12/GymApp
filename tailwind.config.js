@@ -10,6 +10,11 @@ module.exports = {
         burgerBg: "#8D5C00",
         background: {
           300: '#D9D9D9',
+          400: '#BCBCBC',
+        },
+        scarlet: {
+          400: "#C5001A",
+          500: "#B70018",
         }
       }
     },

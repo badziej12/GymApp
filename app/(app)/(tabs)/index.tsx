@@ -3,13 +3,12 @@ import React, { useCallback, useState } from 'react';
 import { useAuth } from '@/context/authContext';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ProfileCard } from '@/components/ProfileCard';
-import { Callendar } from '@/components/Callendar';
 import { collection, doc, getDocs } from 'firebase/firestore';
 import { usersRef } from '@/firebaseConfig';
 import { useDate } from '@/context/dateContext';
 import { addDays, startOfWeek } from 'date-fns';
 import { FullExerciseRefType, SeriesType } from '../addTraining';
+import { HeroComponent } from '@/components/HeroComponent';
 
 export default function Home() {
   const router = useRouter();
@@ -68,7 +67,7 @@ export default function Home() {
   return (
     <View className="flex-1 bg-white ">
       <View>
-        <Callendar />
+        <HeroComponent />
       </View>
       <View className='px-5 flex-1'>
         <View className="flex-1">

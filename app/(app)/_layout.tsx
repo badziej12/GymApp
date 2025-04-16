@@ -9,13 +9,14 @@ import { useAuth } from "@/context/authContext";
 
 export default function _layout() {
   const { user } = useAuth();
+  console.log(user);
 
   return (
     <DateContextProvider>
       <GroupsProvider>
         <Stack
           screenOptions={{
-            headerTitle: props => <HomeHeader userName={user?.username} {...props} />,
+            header: props => <HomeHeader userName={user?.username} />,
           }}
         >
           <Stack.Screen name="(tabs)" />

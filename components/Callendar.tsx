@@ -5,6 +5,7 @@ import { format, startOfWeek, addDays, getDate, getDay, startOfMonth, endOfMonth
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen';
 import { useDate } from "@/context/dateContext";
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { DayCarousel } from "./DayCarousel";
 
 
 export const Callendar = () => {
@@ -26,16 +27,16 @@ export const Callendar = () => {
         "Grudzień"
     ];
 
-    console.log('selected date', selectedDate);
+    // console.log('selected date', selectedDate);
 
     const startOfTheRow = new Date(selectedDate);
     startOfTheRow.setDate(startOfTheRow.getDate() - 8);
 
-    console.log('start of the row', startOfTheRow);
+    // console.log('start of the row', startOfTheRow);
 
     const daysRow = Array.from({ length: 17 }, (_, i) => addDays(startOfTheRow, i));
 
-    console.log("daysRow", daysRow)
+    // console.log("daysRow", daysRow)
 
     const startOfCurrentMonth = startOfMonth(selectedDate);
     const endOfCurrentMonth = endOfMonth(selectedDate);
@@ -86,7 +87,7 @@ export const Callendar = () => {
                             <Text className="text-blue-600" style={{fontWeight: "bold", fontSize: hp(2)}}>S</Text>
                         </View>
                     </View> */}
-                    <View className="flex-row gap-4" style={{display: showFullMonth ? "none" : "flex", height: 32}}>
+                    {/* <View className="flex-row gap-4" style={{display: showFullMonth ? "none" : "flex", height: 32}}>
                         {daysRow.map((day, index) => (
                             <Pressable onPress={() => handleDateSelect(day)} key={index} style={styles.dayContainer} className={"flex-row justify-center"}>
                                 <View className={`rounded-sm ${day.toDateString() === selectedDate.toDateString() ? 'bg-primary' : 'bg-white'}`} style={styles.dayElement}>
@@ -96,13 +97,9 @@ export const Callendar = () => {
                                 </View>
                             </Pressable>
                         ))}
-                    </View>
+                    </View> */}
+                    <DayCarousel showFullMonth={showFullMonth} daysRow={daysRow} onDateSelect={handleDateSelect} />
                 </View>
-                {/* {!showFullMonth && (
-                    <Pressable onPress={() => setShowFullMonth(!showFullMonth)} className="py-2 flex-row justify-center">
-                        <FontAwesome size={28} name={"angle-down"} color={"black"} />
-                    </Pressable>
-                )} */}
             </View>
             <View style={{zIndex: 2, position: "absolute", top: "100%", left: 0, right: 0}} className="bg-slate-200  px-8">
                 {showFullMonth && (

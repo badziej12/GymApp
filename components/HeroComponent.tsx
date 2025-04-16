@@ -6,7 +6,7 @@ import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-nativ
 export const HeroComponent = () => {
 
     return (
-        <View style={{height: hp(40)}} className="bg-scarlet-500 relative">
+        <View style={{height: hp(50)}} className="bg-scarlet-500 relative">
             <LinearGradient
                 colors={['rgba(0,0,0, 0.3)', 'transparent']}
                 style={styles.gradientBg}

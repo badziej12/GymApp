@@ -19,7 +19,6 @@ export default function _layout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="addTraining" />
         </Stack>
       </GroupsProvider>
     </DateContextProvider>

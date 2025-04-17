@@ -7,8 +7,10 @@ import { collection, doc, getDocs } from 'firebase/firestore';
 import { usersRef } from '@/firebaseConfig';
 import { useDate } from '@/context/dateContext';
 import { addDays, startOfWeek } from 'date-fns';
-import { FullExerciseRefType, SeriesType } from '../addTraining';
+import { FullExerciseRefType, SeriesType } from '../(tabs)/(addTraining)/index';
 import { HeroComponent } from '@/components/HeroComponent';
+import { UserStats } from '@/components/UserStats';
+import { NotificationsMenu } from '@/components/NotificationsMenu';
 
 export default function Home() {
   const router = useRouter();
@@ -65,43 +67,17 @@ export default function Home() {
   }
 
   return (
-    <View className="flex-1 bg-white ">
+    <View className="flex-1 bg-white flex-col">
       <View>
         <HeroComponent />
       </View>
-      <View className='px-5 flex-1'>
-        <View className="flex-1">
-          {/* <View className="mb-5">
-            <ProfileCard />
-          </View> */}
-          <View className='mb-5'>
-            <Pressable onPress={() => router.push("/addTraining")} className='border-black border-2 border-b-8 flex-col items-center justify-center h-32 bg-amber-500 rounded-xl'>
-              <Text className='text-black uppercase' style={{fontWeight: "bold", fontSize: hp(2)}}>Dodaj trening</Text>
-            </Pressable>
-          </View>
-          <View className='mb-5 flex-row gap-3'>
-            <View className='flex-grow'>
-              <View className='border-black border-2 border-b-8 flex-col items-center justify-center h-32 bg-amber-300 rounded-xl'>
-                <Text className='text-black uppercase mb-4' style={{fontWeight: "bold", fontSize: hp(2)}}>Ten tydzień</Text>
-                <Text className='text-black uppercase' style={{fontWeight: "bold", fontSize: hp(2)}}>{trainingsWeekNumber}</Text>
-              </View>
-            </View>
-            <View className='flex-grow'>
-              <View className='border-black border-2 border-b-8 flex-col items-center justify-center h-32 bg-amber-300 rounded-xl'>
-                <Text className='text-black uppercase mb-4' style={{fontWeight: "bold", fontSize: hp(2)}}>Ten rok</Text>
-                <Text className='text-black uppercase' style={{fontWeight: "bold", fontSize: hp(2)}}>{trainingsTotalNumber}</Text>
-              </View>
-            </View>
-          </View>
-          <View className='mb-5'>
-            <View className='flex-grow'>
-              <View className='border-black border-2 border-b-8 flex-col items-center justify-center h-32 bg-amber-300 rounded-xl'>
-                <Text className='text-black uppercase mb-4' style={{fontWeight: "bold", fontSize: hp(2)}}>Cięzar total</Text>
-                <Text className='text-black uppercase' style={{fontWeight: "bold", fontSize: hp(2)}}>{totalWeight} kg</Text>
-              </View>
-            </View>
-          </View>
-          
+      <View className='px-5 flex-1 bg-primary'>
+        <View className="py-5">
+          {/* Notifications component */}
+          <NotificationsMenu />
+          <UserStats>
+
+          </UserStats>
         </View>
         <View className="px-5 flex-row gap-2.5" style={{marginBottom: hp(5)}}>
           <Pressable onPress={handleSignOut} style={{height: hp(6.5)}} className="bg-indigo-500 flex-grow rounded-xl justify-center">

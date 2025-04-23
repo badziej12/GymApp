@@ -13,6 +13,7 @@ module.exports = {
           400: '#BCBCBC',
         },
         scarlet: {
+          300: "#FF4A4A",
           400: "#C5001A",
           500: "#B70018",
         }

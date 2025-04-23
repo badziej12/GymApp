@@ -4,7 +4,7 @@ import { Stack } from "expo-router";
 import "../../global.css"
 import { DateContextProvider } from "@/context/dateContext";
 import { GroupsProvider } from "@/context/groupsContext";
-import { HomeHeader } from "@/components/HomeHeader";
+import { HomeHeader } from "@/components/navigation/HomeHeader";
 import { useAuth } from "@/context/authContext";
 
 export default function _layout() {

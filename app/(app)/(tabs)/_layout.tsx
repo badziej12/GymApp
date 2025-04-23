@@ -1,39 +1,28 @@
 import { Tabs } from "expo-router";
+import { TabSlot, TabTrigger, TabList } from "expo-router/ui";
 
 // Import your global CSS file
 import "../../../global.css"
 import { FontAwesome } from "@expo/vector-icons";
-import { View } from "react-native";
+import { View, Text, Image } from "react-native";
 import { Children } from "react";
+import TabBar from "@/components/navigation/TabBar";
 
 export default function _layout() {
   return (
-    <Tabs screenOptions={{
-          tabBarActiveTintColor: 'white',
-          tabBarStyle: {
-            backgroundColor: '#D9D9D9',
-          },
-      }}>
-      <Tabs.Screen
-        name="(groups)"
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="user" color={color} />,
-        }}
-      />
+    <Tabs tabBar={props => <TabBar {...props} />}>
       <Tabs.Screen
         name="index"
         options={{
           headerShown: false,
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />,
+          tabBarIcon: () => <Image source={require('@/assets/images/home-tab-icon.png')} style={{ width: 40, height: 40 }} />,
         }}
       />
       <Tabs.Screen
-        name="(posts)"
+        name="(groups)"
         options={{
           headerShown: false,
-          title: 'Posts',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="circle" color={color} />,
+          tabBarIcon: () => <Image source={require('@/assets/images/groups-tab-icon.png')} style={{ width: 40, height: 40 }} />,
         }}
       />
       <Tabs.Screen
@@ -41,9 +30,25 @@ export default function _layout() {
         options={{
           headerShown: false,
           title: 'Add training',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="circle" color={color} />,
+          tabBarIcon: () => <Text style={{ fontSize: 60, lineHeight: 53 }} className="font-thin">+</Text>,
         }}
-       />
+      />
+      <Tabs.Screen
+        name="(posts)"
+        options={{
+          headerShown: false,
+          title: 'Posts',
+          tabBarIcon: () => <Image source={require('@/assets/images/achivements-tab-icon.png')} style={{ width: 40, height: 40 }} />,
+        }}
+      />
+      <Tabs.Screen
+        name="(gowno)"
+        options={{
+          headerShown: false,
+          title: 'Posts',
+          tabBarIcon: () => <Image source={require('@/assets/images/rewards-tab-icon.png')} style={{ width: 40, height: 40 }} />,
+        }}
+      />
     </Tabs>
   )
 }

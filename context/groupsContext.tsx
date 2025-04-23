@@ -48,6 +48,7 @@ export const GroupsProvider: FC<GroupsProviderProps> = ({children}) => {
         const groupId = id;
         const groupRef = doc(groupsRef, groupId);
         const docSnap = await getDoc(groupRef);
+        console.log("Wywołanie funkcji fetchGroupData");
 
         if (docSnap.exists()) {
             const groupName = docSnap.get("name");
@@ -146,6 +147,7 @@ export const GroupsProvider: FC<GroupsProviderProps> = ({children}) => {
     }
 
     const getTrainingsByExercise = async (exerciseName: string) => {
+        console.log("Wywołanie funkcji getTrainingsByExercise");
         if (!group) {
             console.error("Group is not set");
             return;
@@ -186,14 +188,6 @@ export const GroupsProvider: FC<GroupsProviderProps> = ({children}) => {
             }
         }));        
     }
-
-    useEffect(() => {
-        const getTrainingsData = async () => {
-            const trainings = await getTrainingsByExercise("Martwy ciąg");
-        }
-
-        getTrainingsData();
-    }, [group])
 
 
 

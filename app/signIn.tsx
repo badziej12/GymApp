@@ -29,7 +29,7 @@ export default function SignIn() {
   }
   return (
     <View className="flex-1">
-      <StatusBar style={"light"} />ż
+      <StatusBar style={"light"} />
       <View style={{paddingTop: hp(20), paddingHorizontal: wp(5)}} className="flex-1 gap-12">
         <Text style={{fontSize: hp(4)}} className="font-bold tracking-wider text-center text-black">
           Sign in

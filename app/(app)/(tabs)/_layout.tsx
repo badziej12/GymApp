@@ -1,5 +1,4 @@
 import { Tabs } from "expo-router";
-import { TabSlot, TabTrigger, TabList } from "expo-router/ui";
 
 // Import your global CSS file
 import "../../../global.css"

@@ -9,6 +9,7 @@ import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_100Thin } from "@expo-google-fonts/inter/100Thin";
 import { Inter_400Regular } from "@expo-google-fonts/inter/400Regular";
 import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
+import { ActivityIndicator, View } from "react-native";
 
 const MainLayout = () => {
   const { isAuthenticated } = useAuth();
@@ -23,16 +24,25 @@ const MainLayout = () => {
 
   useEffect(() => {
     // check if user is authenticated or not
-    if (typeof isAuthenticated == 'undefined') return;
+    if (!fontsLoaded || typeof isAuthenticated === 'undefined') return;
+
     const inApp = segments[0] == '(app)';
     if (isAuthenticated && !inApp) {
       // redirect to home
       router.replace('/(app)' as RelativePathString);
-    } else if (!isAuthenticated) {
+    } else if (!isAuthenticated && inApp) {
       // redirect to sign
       router.replace('/signIn');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, segments, fontsLoaded]);
+
+  if (!fontsLoaded || typeof isAuthenticated === 'undefined') {
+    return (
+      <View className="flex-1 justify-center items-center bg-black">
+        <ActivityIndicator color="white" />
+      </View>
+    );
+  }
 
   return <Slot />;
 }

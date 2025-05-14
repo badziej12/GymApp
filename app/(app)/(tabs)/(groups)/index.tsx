@@ -1,7 +1,8 @@
-import { Pressable, View, Text, ScrollView } from "react-native"
-import { heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import { Pressable, View, Text, ScrollView, StyleSheet } from "react-native"
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import { GroupCard } from "@/components/GroupCard";
 import { useAuth } from "@/context/authContext";
 import { doc, getDoc } from "firebase/firestore";
@@ -11,7 +12,7 @@ export default function Groups() {
     const [groups, setGroups] = useState<{ name: string; members: string[]; groupSize: number, groupId: string }[]>([]);
 
     const { user } = useAuth();
-    
+
     const fetchUserGroups = async () => {
         if (user?.userId) {
             const userRef = doc(usersRef, user?.userId);
@@ -36,7 +37,7 @@ export default function Groups() {
                             return memberSnap.get("username");
                         }
                     }));
-        
+
                     return groupSnap.exists() ? { name: groupName, groupSize: groupSize, members: members, groupId: groupId } : null;
                 }));
 
@@ -53,21 +54,40 @@ export default function Groups() {
     );
 
     return (
-        <View className="flex-1 bg-white px-5">
-            <View className="flex-1">
-                <ScrollView style={{paddingTop: 40}} className="flex-1 px-5">
-                    <View className="flex-col gap-5">
-                        {groups.map(group => 
+        <View className="flex-1 bg-background-900">
+            <LinearGradient
+                colors={['rgba(0,0,0, 0.3)', 'transparent']}
+                style={styles.gradientBg}
+            />
+            <View className="pt-12 mb-8">
+                <Text style={{ fontFamily: 'Inter_500Medium' }} className="text-white px-5">Grupy do których należysz</Text>
+                <ScrollView horizontal={true} style={{ paddingTop: 20 }} showsHorizontalScrollIndicator={false}>
+                    <View className="flex-row gap-5 px-5">
+                        {groups.map(group =>
                             <GroupCard key={group.name} name={group.name} members={group.members} groupSize={group.groupSize} groupId={group.groupId} />
                         )}
                     </View>
                 </ScrollView>
-                <View className="px-5 flex-row gap-2.5" style={{marginBottom: hp(5)}}>
-                    <Pressable onPress={() => router.push("/createGroup")} style={{height: hp(6.5)}} className="bg-indigo-500 flex-grow rounded-xl justify-center">
-                        <Text className="text-white font-bold tracking-wider text-center">Create</Text>
-                    </Pressable>
-                </View>
+            </View>
+            <View className="px-5 mb-8">
+                <Text style={{ fontFamily: 'Inter_500Medium' }} className="text-white">Twoje najlepsze wyniki w grupie</Text>
+
+            </View>
+            <View className="flex-row gap-2.5 px-5" style={{ marginBottom: hp(5) }}>
+                <Pressable onPress={() => router.push("/createGroup")} className="bg-background-300 justify-center py-3 px-6">
+                    <Text style={{ fontFamily: "Inter_500Medium" }} className="text-center">Stwórz grupę</Text>
+                </Pressable>
             </View>
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    gradientBg: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        height: hp(5),
+    },
+});

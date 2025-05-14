@@ -11,8 +11,10 @@ module.exports = {
         background: {
           300: '#D9D9D9',
           400: '#BCBCBC',
+          900: '#3A3A3A',
         },
         scarlet: {
+          200: '#FF5D5D',
           300: "#FF4A4A",
           400: "#C5001A",
           500: "#B70018",

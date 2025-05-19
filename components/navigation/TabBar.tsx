@@ -1,16 +1,18 @@
-import { View, Platform, TouchableOpacity } from 'react-native';
+import { View, Platform, TouchableOpacity, Pressable } from 'react-native';
 import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FC, ReactNode } from 'react';
+import { useRouter } from 'expo-router';
 
 const TabBar: FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
-  const { colors } = useTheme();
-  const { buildHref } = useLinkBuilder();
+  const router = useRouter();
 
   return (
     <View style={{ flexDirection: 'row' }} className='flex flex-row px-5'>
       {state.routes.map((route, index) => {
+        console.log(route.name)
+
         const { options } = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined
@@ -19,7 +21,7 @@ const TabBar: FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
               ? options.title
               : route.name;
 
-        // if(['_sitemap', '+not-found'].includes(route.name)) return null;
+        if (['_sitemap', '+not-found'].includes(route.name)) return null;
 
         const labelToString = label as string;
 
@@ -28,14 +30,18 @@ const TabBar: FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
         const isFocused = state.index === index;
 
         const onPress = () => {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
+          if (route.name === '(addTraining)') {
+            router.push('/(app)/addTraining');
+          } else {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name, route.params);
+            }
           }
         };
 
@@ -60,6 +66,7 @@ const TabBar: FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
             </TouchableOpacity>
           </View>
         );
+
       })}
     </View>
   );

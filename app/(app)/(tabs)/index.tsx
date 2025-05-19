@@ -7,7 +7,7 @@ import { collection, doc, getDocs } from 'firebase/firestore';
 import { usersRef } from '@/firebaseConfig';
 import { useDate } from '@/context/dateContext';
 import { addDays, startOfWeek } from 'date-fns';
-import { FullExerciseRefType, SeriesType } from '../(tabs)/(addTraining)/index';
+import { FullExerciseRefType, SeriesType } from '../addTraining';
 import { HeroComponent } from '@/components/home/HeroComponent';
 import { UserStats } from '@/components/UserStats';
 import { NotificationsMenu } from '@/components/home/NotificationsMenu';

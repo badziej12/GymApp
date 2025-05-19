@@ -9,8 +9,11 @@ module.exports = {
         primary: "#FFCC00",
         burgerBg: "#8D5C00",
         background: {
+          200: '#E3E3E3',
           300: '#D9D9D9',
           400: '#BCBCBC',
+          600: '#9E9E9E',
+          700: '#7E7E7E',
           900: '#3A3A3A',
         },
         scarlet: {
@@ -18,7 +21,8 @@ module.exports = {
           300: "#FF4A4A",
           400: "#C5001A",
           500: "#B70018",
-        }
+        },
+        secondaryGreen: '#64AF00',
       }
     },
   },

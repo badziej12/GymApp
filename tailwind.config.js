@@ -24,6 +24,8 @@ module.exports = {
         },
         secondaryGreen: '#64AF00',
         sunny: "#FFC400",
+        azure: "#57ADD4",
+        secondaryBrown: "#AF7500",
       }
     },
   },

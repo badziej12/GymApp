@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ExerciseSelect } from "@/components/ExerciseSelect";
 import { useAuth } from "@/context/authContext";
 import { useDate } from "@/context/dateContext";
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/ExerciseDetails";
+import Timer from "@/components/Timer/Timer";
 
 export type SeriesType = {
     reps: string,
@@ -29,6 +29,7 @@ export default function AddTraining() {
     const { user } = useAuth();
     const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [timerIsRunning, setTimerIsRunning] = useState(true);
     const exercisesSelectRef = useRef<{ getExercise: () => FullExerciseRefType | null }[]>([]);
     const fullTrainingRef = useRef<FullExerciseRefType[]>([]);
 
@@ -73,6 +74,10 @@ export default function AddTraining() {
         setExerciseSelects(exerciseSelects.filter(exercise => exercise.id !== id));
     };
 
+    const handlePauseTimer = () => {
+        setTimerIsRunning(prev => !prev);
+    }
+
     const handleSaveTraining = () => {
         exercisesSelectRef.current.forEach((ref) => {
             const exercise = ref.getExercise();
@@ -86,17 +91,19 @@ export default function AddTraining() {
         }
     };
 
+    const bgColorClass = timerIsRunning ? "bg-secondaryGreen" : "bg-secondaryBrown";
+
     return (
         <View className="flex-1 h-full">
             <View className="relative bg-background-600" style={{ height: hp(20) }}>
                 <Image style={styles.avatarImage} source={require('@/assets/images/hero-avatar.png')} />
                 <View style={styles.floorBg} className="bg-background-700 h-2/5" />
             </View>
-            <View className="pt-4 px-6 pb-12 bg-secondaryGreen flex-grow flex-col">
+            <View className={`pt-4 px-6 pb-12 ${bgColorClass} flex-grow flex-col`}>
                 <View className="mb-4 flex-col">
                     <View className="flex-row justify-between mb-1">
                         <Text style={styles.title}>New Workout</Text>
-                        <Text style={styles.title}>0:02</Text>
+                        <Timer isRunning={timerIsRunning} mode="up" textProps={{ style: [styles.title, { opacity: timerIsRunning ? 1 : .4 }] }} />
                     </View>
                     <View>
                         <Text style={styles.subtitle}>{displayedDate}</Text>
@@ -119,7 +126,7 @@ export default function AddTraining() {
                 </ScrollView>
                 <View className="flex-row gap-4">
                     <ButtonComponent onPress={handleSaveTraining} title="Finish" />
-                    <ButtonComponent title="Pause" variant="secondary" />
+                    <ButtonComponent title={`${timerIsRunning ? "Pause" : "Resume"}`} variant="secondary" onPress={handlePauseTimer} />
                 </View>
             </View>
             <ExerciseModal onCloseModal={handleCloseModal} isModalVisible={isModalVisible} onAddExercise={handleAddExerciseSelect} />
@@ -135,9 +142,10 @@ const styles = StyleSheet.create({
         fontFamily: 'Rubik_700Bold_Italic',
     },
     subtitle: {
-        fontSize: hp(1.2),
+        fontSize: 10,
         fontWeight: "200",
         color: 'white',
+        fontFamily: "Roboto_400Regular",
     },
     selectArrow: {
         position: "absolute",

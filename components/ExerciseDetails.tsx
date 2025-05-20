@@ -1,8 +1,9 @@
 import { FullExerciseRefType, SeriesType } from "@/app/(app)/addTraining";
 import { FontAwesome } from "@expo/vector-icons";
 import { FC, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Pressable } from "react-native";
+import { View, Text, StyleSheet, TextInput, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import Timer from "./Timer/Timer";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
@@ -15,6 +16,7 @@ type RefType = {
 
 const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, exerciseName }, ref) => {
     const [serieSelects, setserieSelects] = useState([{ id: Date.now(), reps: '', weight: '' }]);
+    const [timerIsRunning, setTimerIsRunning] = useState(false);
 
     const fullExerciseRef = useRef<FullExerciseRefType | null>(null);
     const repRef = useRef<string[]>([]);
@@ -67,6 +69,15 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
     const usePreviousValues = (previousReps: string, previousWeight: string) => {
         repRef.current.push(previousReps);
         weightRef.current.push(previousWeight);
+    }
+
+    const handleRestStart = () => {
+        setTimerIsRunning(true);
+    }
+
+    const handleRestFinish = () => {
+        setTimerIsRunning(false);
+        Vibration.vibrate();
     }
 
     return (
@@ -146,9 +157,9 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
                 <Text className="mx-4" style={styles.buttoSeriesText}>Add set</Text>
                 <View className="flex-grow" style={styles.buttonSeriesRightLine} />
             </Pressable>
-            <Pressable style={styles.restButton} className="flex-row justify-between px-2 py-1">
+            <Pressable onPress={handleRestStart} style={styles.restButton} className="flex-row justify-between px-2 py-1">
                 <Text style={styles.restButtonCopy}>Rest</Text>
-                <Text style={styles.restButtonCopy}>0:26</Text>
+                <Timer mode="down" isRunning={timerIsRunning} textProps={{ style: styles.restButtonCopy }} duration={10} onFinish={handleRestFinish} />
             </Pressable>
         </View>
     )
@@ -188,11 +199,12 @@ const styles = StyleSheet.create({
         fontWeight: "medium",
     },
     buttoSeriesText: {
+        position: 'relative',
         fontSize: 14,
         color: "white",
         textTransform: "uppercase",
         fontFamily: "Montserrat_700Bold_Italic",
-        transform: [{ translateY: 7 }],
+        top: 7,
     },
     buttonSeriesLeftLine: {
         borderColor: "white",

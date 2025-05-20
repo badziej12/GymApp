@@ -15,7 +15,7 @@ const TrainingCard: FC<TrainingCardProps> = ({ trainingName, selectedTraining, o
             <View className="bg-white w-12 h-full">
 
             </View>
-            <View className={`border-2 border-l-0 border-${isSelected ? 'sunny' : 'white'} flex-grow flex-row`}>
+            <View className={`border-2 border-l-0 ${isSelected ? 'border-sunny' : 'border-white'} flex-grow flex-row`}>
                 <View className="px-4 py-2 flex-row items-center flex-grow">
                     <Text style={styles.trainingName} className={`text-${isSelected ? 'sunny' : 'white'}`}>{trainingName}</Text>
                 </View>

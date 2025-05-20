@@ -3,7 +3,7 @@ import { Tabs } from "expo-router";
 // Import your global CSS file
 import "../../../global.css"
 import { FontAwesome } from "@expo/vector-icons";
-import { View, Text, Image } from "react-native";
+import { Text, Image, Pressable } from "react-native";
 import { Children } from "react";
 import TabBar from "@/components/navigation/TabBar";
 
@@ -27,6 +27,7 @@ export default function _layout() {
       <Tabs.Screen
         name="(addTraining)"
         options={{
+          href: null,
           headerShown: false,
           title: 'Add training',
           tabBarIcon: () => <Text style={{ fontSize: 60, lineHeight: 53 }} className="font-thin">+</Text>,

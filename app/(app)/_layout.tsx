@@ -19,6 +19,7 @@ export default function _layout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="addTraining" options={{ headerShown: false, presentation: 'modal' }} />
         </Stack>
       </GroupsProvider>
     </DateContextProvider>

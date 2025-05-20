@@ -9,6 +9,9 @@ import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
 import { Inter_100Thin } from "@expo-google-fonts/inter/100Thin";
 import { Inter_400Regular } from "@expo-google-fonts/inter/400Regular";
 import { Inter_700Bold } from "@expo-google-fonts/inter/700Bold";
+import { Rubik_400Regular_Italic, Rubik_700Bold_Italic, Rubik_600SemiBold_Italic } from "@expo-google-fonts/rubik";
+import { Montserrat_700Bold_Italic, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
+import { Roboto_700Bold, Roboto_400Regular } from "@expo-google-fonts/roboto";
 import { ActivityIndicator, View } from "react-native";
 
 const MainLayout = () => {
@@ -20,6 +23,13 @@ const MainLayout = () => {
     Inter_500Medium,
     Inter_400Regular,
     Inter_100Thin,
+    Rubik_700Bold_Italic,
+    Rubik_600SemiBold_Italic,
+    Rubik_400Regular_Italic,
+    Montserrat_700Bold_Italic,
+    Montserrat_700Bold,
+    Roboto_700Bold,
+    Roboto_400Regular
   });
 
   useEffect(() => {

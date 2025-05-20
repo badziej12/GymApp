@@ -4,11 +4,12 @@ import { Pressable, StyleSheet, View, Text } from "react-native"
 type ButtonProps = {
     title: string,
     variant?: 'primary' | 'secondary' | 'dashed',
+    onPress?: () => void;
 }
 
-export const ButtonComponent: FC<ButtonProps> = ({ title, variant = "primary" }) => {
+export const ButtonComponent: FC<ButtonProps> = ({ title, variant = "primary", onPress }) => {
     return (
-        <Pressable className="text-center relative flex-row items-center justify-center flex-grow" style={styles[variant]}>
+        <Pressable onPress={onPress} className="text-center relative flex-row items-center justify-center flex-grow" style={styles[variant]}>
             {variant === "dashed" && (
                 <View className="w-1/6" style={styles.buttonLine} />
             )}
@@ -29,8 +30,7 @@ const styles = StyleSheet.create({
     },
     primaryText: {
         color: "#000",
-        fontStyle: 'italic',
-        backdropFilter: '',
+        fontFamily: "Montserrat_700Bold_Italic",
     },
     secondary: {
         paddingVertical: 12,
@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
     secondaryText: {
         color: "#FFF",
         fontStyle: 'italic',
+        fontFamily: "Montserrat_700Bold_Italic",
     },
     dashed: {
         paddingVertical: 16,
@@ -51,6 +52,7 @@ const styles = StyleSheet.create({
         color: "#FFD500",
         fontStyle: 'italic',
         backdropFilter: '',
+        fontFamily: "Montserrat_700Bold_Italic",
     },
     buttonLine: {
         height: 1,

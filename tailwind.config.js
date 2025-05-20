@@ -23,6 +23,7 @@ module.exports = {
           500: "#B70018",
         },
         secondaryGreen: '#64AF00',
+        sunny: "#FFC400",
       }
     },
   },

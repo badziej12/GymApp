@@ -1,4 +1,4 @@
-import { trainingsRef, usersRef } from "@/firebaseConfig";
+import { usersRef } from "@/firebaseConfig";
 import { addDoc, collection, doc, getDocs } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
@@ -9,6 +9,8 @@ import { useAuth } from "@/context/authContext";
 import { useDate } from "@/context/dateContext";
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
+import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
+import ExerciseDetails from "@/components/ExerciseDetails";
 
 export type SeriesType = {
     reps: string,
@@ -25,8 +27,8 @@ const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday"
 export default function AddTraining() {
     const { selectedDate } = useDate();
     const { user } = useAuth();
-    const [trainings, setTrainings] = useState([]);
-    const [exerciseSelects, setExerciseSelects] = useState([{ id: Date.now() }]);
+    const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const exercisesSelectRef = useRef<{ getExercise: () => FullExerciseRefType | null }[]>([]);
     const fullTrainingRef = useRef<FullExerciseRefType[]>([]);
 
@@ -34,12 +36,6 @@ export default function AddTraining() {
     const monthNumber = selectedDate.getMonth();
     const yearNumber = selectedDate.getFullYear();
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
-
-
-    const fetchTrainings = async () => {
-        const docSnap = await getDocs(trainingsRef);
-        setTrainings(docSnap.docs[0].get("trainings"));
-    }
 
     const updateUserTraining = async (fullTraining: FullExerciseRefType[]) => {
         const userRef = doc(usersRef, user?.userId);
@@ -60,15 +56,20 @@ export default function AddTraining() {
 
     }
 
-    useEffect(() => {
-        fetchTrainings();
-    }, [])
-
-    const addExerciseSelect = () => {
-        setExerciseSelects([...exerciseSelects, { id: Date.now() }]);
+    const handleAddExerciseSelect = (exerciseName: string) => {
+        setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
+        setIsModalVisible(false);
     };
 
-    const removeExerciseSelect = (id: number) => {
+    const handleOpenModal = () => {
+        setIsModalVisible(true);
+    }
+
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
+    }
+
+    const handleRemoveExerciseSelect = (id: number) => {
         setExerciseSelects(exerciseSelects.filter(exercise => exercise.id !== id));
     };
 
@@ -102,32 +103,26 @@ export default function AddTraining() {
                     </View>
                 </View>
                 <ScrollView className="flex-col">
-                    {/* {exerciseSelects.map((exercise, index) => (
-                        <ExerciseSelect
+                    {exerciseSelects.map((exercise, index) =>
+                        <ExerciseDetails
                             ref={el => {
                                 if (el) {
                                     exercisesSelectRef.current[index] = el;
                                 }
                             }}
                             key={exercise.id}
-                            trainings={trainings}
-                            onRemove={() => removeExerciseSelect(exercise.id)}
+                            exerciseName={exercise.exerciseName}
+                            onRemove={() => handleRemoveExerciseSelect(exercise.id)}
                         />
-                    ))} */}
-                    <ButtonComponent title="Add exercise" variant="dashed" />
-
+                    )}
+                    <ButtonComponent onPress={handleOpenModal} title="Add exercise" variant="dashed" />
                 </ScrollView>
                 <View className="flex-row gap-4">
-                    {/* <Pressable onPress={addExerciseSelect} className="bg-indigo-400 items-center rounded-xl py-4 mb-6 border-2">
-                        <Text style={styles.buttonText}>Dodaj ćwiczenie</Text>
-                    </Pressable>
-                    <Pressable onPress={handleSaveTraining} className="bg-green-500 items-center rounded-xl py-4 border-2">
-                        <Text style={styles.buttonText}>Zapisz trening</Text>
-                    </Pressable> */}
-                    <ButtonComponent title="Finish" />
-                    <ButtonComponent title="Resume" variant="secondary" />
+                    <ButtonComponent onPress={handleSaveTraining} title="Finish" />
+                    <ButtonComponent title="Pause" variant="secondary" />
                 </View>
             </View>
+            <ExerciseModal onCloseModal={handleCloseModal} isModalVisible={isModalVisible} onAddExercise={handleAddExerciseSelect} />
         </View>
     );
 }
@@ -137,7 +132,7 @@ const styles = StyleSheet.create({
         fontSize: hp(2.4),
         fontWeight: "bold",
         color: 'white',
-        fontStyle: 'italic',
+        fontFamily: 'Rubik_700Bold_Italic',
     },
     subtitle: {
         fontSize: hp(1.2),
@@ -170,6 +165,5 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        // height: hp(10),
     },
 })

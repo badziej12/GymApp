@@ -16,6 +16,9 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.3.0",
+    "@expo-google-fonts/montserrat": "^0.3.0",
+    "@expo-google-fonts/roboto": "^0.3.0",
+    "@expo-google-fonts/rubik": "^0.3.0",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-navigation/bottom-tabs": "^7.2.0",

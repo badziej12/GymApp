@@ -11,8 +11,6 @@ const TabBar: FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   return (
     <View style={{ flexDirection: 'row' }} className='flex flex-row px-5'>
       {state.routes.map((route, index) => {
-        console.log(route.name)
-
         const { options } = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined

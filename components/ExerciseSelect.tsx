@@ -2,7 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
-import { ExerciseDetails } from './ExerciseDetails';
+import ExerciseDetails from './ExerciseDetails';
 import { FullExerciseRefType, SeriesType } from '@/app/(app)/addTraining';
 
 
@@ -11,7 +11,7 @@ type ExerciseSelectProps = {
     onRemove: () => void;
 }
 
-export const ExerciseSelect = forwardRef<{ getExercise: () => FullExerciseRefType | null }, ExerciseSelectProps>(({trainings, onRemove}, ref) => {
+export const ExerciseSelect = forwardRef<{ getExercise: () => FullExerciseRefType | null }, ExerciseSelectProps>(({ trainings, onRemove }, ref) => {
     const [selectedTraining, setSelectedTraining] = useState('');
     const fullExerciseRef = useRef<FullExerciseRefType | null>(null);
     const exerciseDetailsRef = useRef<{ getReps: () => string[], getWeights: () => string[] } | null>(null);
@@ -29,7 +29,7 @@ export const ExerciseSelect = forwardRef<{ getExercise: () => FullExerciseRefTyp
 
             for (let i = 0; i < reps.length; i++) {
                 if (weights[i] && reps[i]) {
-                    series.push({reps: reps[i], weight: weights[i]});
+                    series.push({ reps: reps[i], weight: weights[i] });
                 }
             }
 
@@ -78,7 +78,7 @@ export const ExerciseSelect = forwardRef<{ getExercise: () => FullExerciseRefTyp
             </View>
             {selectedTraining && <ExerciseDetails ref={exerciseDetailsRef} />}
         </View>
-    );   
+    );
 });
 
 const styles = StyleSheet.create({

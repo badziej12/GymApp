@@ -109,21 +109,23 @@ export default function AddTraining() {
                         <Text style={styles.subtitle}>{displayedDate}</Text>
                     </View>
                 </View>
-                <ScrollView className="flex-col">
-                    {exerciseSelects.map((exercise, index) =>
-                        <ExerciseDetails
-                            ref={el => {
-                                if (el) {
-                                    exercisesSelectRef.current[index] = el;
-                                }
-                            }}
-                            key={exercise.id}
-                            exerciseName={exercise.exerciseName}
-                            onRemove={() => handleRemoveExerciseSelect(exercise.id)}
-                        />
-                    )}
-                    <ButtonComponent onPress={handleOpenModal} title="Add exercise" variant="dashed" />
-                </ScrollView>
+                <View className="pb-4 flex-grow">
+                    <ScrollView className="h-1" showsVerticalScrollIndicator={false}>
+                        {exerciseSelects.map((exercise, index) =>
+                            <ExerciseDetails
+                                ref={el => {
+                                    if (el) {
+                                        exercisesSelectRef.current[index] = el;
+                                    }
+                                }}
+                                key={exercise.id}
+                                exerciseName={exercise.exerciseName}
+                                onRemove={() => handleRemoveExerciseSelect(exercise.id)}
+                            />
+                        )}
+                        <ButtonComponent onPress={handleOpenModal} title="Add exercise" variant="dashed" />
+                    </ScrollView>
+                </View>
                 <View className="flex-row gap-4">
                     <ButtonComponent onPress={handleSaveTraining} title="Finish" />
                     <ButtonComponent title={`${timerIsRunning ? "Pause" : "Resume"}`} variant="secondary" onPress={handlePauseTimer} />

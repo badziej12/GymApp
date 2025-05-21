@@ -1,4 +1,6 @@
 import { RelativePathString, router, Slot, useSegments } from "expo-router";
+import 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Import your global CSS file
 import "../global.css"
@@ -60,7 +62,9 @@ const MainLayout = () => {
 export default function RootLayout() {
   return (
     <AuthContextProvider>
-      <MainLayout />
+      <GestureHandlerRootView>
+        <MainLayout />
+      </GestureHandlerRootView>
     </AuthContextProvider>
   )
 }

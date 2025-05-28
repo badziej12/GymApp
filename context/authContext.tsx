@@ -8,6 +8,10 @@ import {
 } from "firebase/auth"
 import { auth, db } from '@/firebaseConfig';
 import { doc, setDoc, getDoc } from '@firebase/firestore';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, useAppDispatch } from '@/store/store';
+import { authActions } from '@/store/auth/auth-slice';
+import { updateUserDataAction } from '@/store/auth/auth-actions/update-user-data';
 
 interface ExtendedUser extends User {
   username?: string;
@@ -25,8 +29,8 @@ export const AuthContext = createContext<{
 }>({
   signIn: async () => ({ success: false, msg: '' }),
   signUp: async () => ({ success: false, msg: '' }),
-  logout: async () => ({ success: false, msg: '' , error: ''}),
-  updateUserData: async () => {},
+  logout: async () => ({ success: false, msg: '', error: '' }),
+  updateUserData: async () => { },
   session: null,
   isAuthenticated: false,
   user: null,
@@ -44,6 +48,8 @@ export const useAuth = () => {
 export const AuthContextProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<ExtendedUser | null>();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const userData = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user: ExtendedUser | User | null) => {
@@ -51,6 +57,7 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
       if (user) {
         setIsAuthenticated(true);
         setUser(user);
+        dispatch(updateUserDataAction(user.uid));
         updateUserData(user.uid);
       } else {
         setIsAuthenticated(false);
@@ -64,10 +71,10 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
     const docRef = doc(db, 'users', userId);
     const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()){
+    if (docSnap.exists()) {
       let data = docSnap.data();
       let userData = user as ExtendedUser;
-      setUser({...userData, username: data.username, userId: data.userId});
+      setUser({ ...userData, username: data.username, userId: data.userId });
     }
   }
 
@@ -77,8 +84,8 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
       return { success: true };
     } catch (e: any) {
       let msg = e.message;
-      if (msg.includes('(auth/invalid-email')) msg='Invalid email'
-      if (msg.includes('(auth/invalid-credential')) msg='Invalid credentials'
+      if (msg.includes('(auth/invalid-email')) msg = 'Invalid email'
+      if (msg.includes('(auth/invalid-credential')) msg = 'Invalid credentials'
       return { success: false, msg: msg }
     }
   }
@@ -86,9 +93,9 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
   const logout = async () => {
     try {
       await signOut(auth);
-      return {success: true}
+      return { success: true }
     } catch (e: any) {
-      return {success: false, msg: e.message, error: e}
+      return { success: false, msg: e.message, error: e }
     }
   }
 
@@ -101,12 +108,12 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
         userId: response?.user?.uid,
         groups: [],
       });
-      return {success: true, data: response?.user};
+      return { success: true, data: response?.user };
     } catch (e: any) {
       let msg = e.message;
-      if (msg.includes('(auth/invalid-email')) msg='Invalid email'
-      if (msg.includes('(auth/email-already-in-use')) msg='This email is already in use'
-      return {success: false, msg: msg}
+      if (msg.includes('(auth/invalid-email')) msg = 'Invalid email'
+      if (msg.includes('(auth/email-already-in-use')) msg = 'This email is already in use'
+      return { success: false, msg: msg }
     }
   }
 

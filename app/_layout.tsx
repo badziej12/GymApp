@@ -1,6 +1,7 @@
 import { RelativePathString, router, Slot, useSegments } from "expo-router";
 import 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Provider } from 'react-redux';
 
 // Import your global CSS file
 import "../global.css"
@@ -15,6 +16,7 @@ import { Rubik_400Regular_Italic, Rubik_700Bold_Italic, Rubik_600SemiBold_Italic
 import { Montserrat_700Bold_Italic, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
 import { Roboto_700Bold, Roboto_400Regular } from "@expo-google-fonts/roboto";
 import { ActivityIndicator, View } from "react-native";
+import store from "@/store/store";
 
 const MainLayout = () => {
   const { isAuthenticated } = useAuth();
@@ -61,10 +63,12 @@ const MainLayout = () => {
 
 export default function RootLayout() {
   return (
-    <AuthContextProvider>
-      <GestureHandlerRootView>
-        <MainLayout />
-      </GestureHandlerRootView>
-    </AuthContextProvider>
+    <Provider store={store}>
+      <AuthContextProvider>
+        <GestureHandlerRootView>
+          <MainLayout />
+        </GestureHandlerRootView>
+      </AuthContextProvider >
+    </Provider>
   )
 }

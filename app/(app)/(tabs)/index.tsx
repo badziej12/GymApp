@@ -11,6 +11,7 @@ import { FullExerciseRefType, SeriesType } from '../addTraining';
 import { HeroComponent } from '@/components/home/HeroComponent';
 import { UserStats } from '@/components/UserStats';
 import { NotificationsMenu } from '@/components/home/NotificationsMenu';
+import { useAppSelector } from '@/store/store';
 
 export default function Home() {
   const router = useRouter();
@@ -19,6 +20,11 @@ export default function Home() {
   const [totalWeight, setTotalWeight] = useState(0);
   const { logout, user } = useAuth();
   const { selectedDate } = useDate();
+  const userData = useAppSelector(state => state.auth.user);
+
+  console.log("user: ", user);
+  console.log("user redux: ", userData);
+
 
   const fetchUserTrainings = async () => {
     if (user?.userId) {

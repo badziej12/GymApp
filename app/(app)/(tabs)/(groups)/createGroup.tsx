@@ -1,5 +1,5 @@
-import { useAuth } from "@/context/authContext";
 import { useGroups } from "@/context/groupsContext";
+import { useAppSelector } from "@/store/store";
 import { router } from "expo-router";
 import { useRef } from "react";
 import { Pressable, SafeAreaView, TextInput, View, Text } from "react-native";
@@ -7,7 +7,7 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 
 export default function CreateGroup() {
     const { createGroup } = useGroups();
-    const { user } = useAuth();
+    const user = useAppSelector(state => state.auth.user);
 
     const groupName = useRef("");
 

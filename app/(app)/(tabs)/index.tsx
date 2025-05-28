@@ -1,6 +1,5 @@
 import { View, Text, Pressable } from 'react-native';
 import React, { useCallback, useState } from 'react';
-import { useAuth } from '@/context/authContext';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { collection, doc, getDocs } from 'firebase/firestore';
@@ -11,14 +10,20 @@ import { FullExerciseRefType, SeriesType } from '../addTraining';
 import { HeroComponent } from '@/components/home/HeroComponent';
 import { UserStats } from '@/components/UserStats';
 import { NotificationsMenu } from '@/components/home/NotificationsMenu';
+import { useAppSelector } from '@/store/store';
 
 export default function Home() {
   const router = useRouter();
   const [trainingsWeekNumber, setTrainingsWeekNumber] = useState(0);
   const [trainingsTotalNumber, setTrainingsTotalNumber] = useState(0);
   const [totalWeight, setTotalWeight] = useState(0);
-  const { logout, user } = useAuth();
+  const user = useAppSelector(state => state.auth.user);
   const { selectedDate } = useDate();
+  const userData = useAppSelector(state => state.auth.user);
+
+  console.log("user: ", user);
+  console.log("user redux: ", userData);
+
 
   const fetchUserTrainings = async () => {
     if (user?.userId) {
@@ -61,10 +66,6 @@ export default function Home() {
       fetchUserTrainings();
     }, [user, selectedDate])
   );
-
-  const handleSignOut = async () => {
-    await logout();
-  }
 
   return (
     <View className="flex-1 bg-white flex-col">

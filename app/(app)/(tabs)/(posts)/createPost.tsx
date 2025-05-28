@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 import { View, Text, Pressable, SafeAreaView, TextInput, Alert } from 'react-native';
-import { useAuth } from '@/context/authContext';
-import { heightPercentageToDP as hp} from 'react-native-responsive-screen';
+import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useRouter } from 'expo-router';
 import { db } from '@/firebaseConfig';
 import { doc, setDoc } from '@firebase/firestore';
+import { useAppSelector } from '@/store/store';
 
 export default function CreatePost() {
-  const { user } = useAuth();
+  const user = useAppSelector(state => state.auth.user);
   const router = useRouter();
 
   const titleRef = useRef("");
@@ -22,7 +22,7 @@ export default function CreatePost() {
     let response = await createPost(titleRef.current, descriptionRef.current);
     // login process
     // console.log("got result: ", response);
-    if(!response.success) {
+    if (!response.success) {
       Alert.alert('Create Post', response.msg);
     }
     return router.dismiss(1);
@@ -38,24 +38,24 @@ export default function CreatePost() {
         author: user?.username,
         userId: user?.userId
       });
-      return {success: true, title: title, description: description, userId: user?.userId};
+      return { success: true, title: title, description: description, userId: user?.userId };
     } catch (e: any) {
       let msg = e.message;
-      if (msg.includes('(auth/invalid-email')) msg='Invalid email'
-      if (msg.includes('(auth/email-already-in-use')) msg='This email is already in use'
-      return {success: false, msg: msg}
+      if (msg.includes('(auth/invalid-email')) msg = 'Invalid email'
+      if (msg.includes('(auth/email-already-in-use')) msg = 'This email is already in use'
+      return { success: false, msg: msg }
     }
   }
 
   return (
-    <View style={{paddingTop: 40}} className="flex-1 bg-white px-5">
+    <View style={{ paddingTop: 40 }} className="flex-1 bg-white px-5">
       <View className="flex-1">
         <View className="mb-5">
-          <Text className="font-semibold" style={{fontSize: hp(3)}}>Stwórz post</Text>
+          <Text className="font-semibold" style={{ fontSize: hp(3) }}>Stwórz post</Text>
         </View>
         <SafeAreaView className="flex-1 flex-col gap-4">
           <TextInput
-            style={{fontSize: hp(2)}}
+            style={{ fontSize: hp(2) }}
             className="bg-neutral-100 px-6 py-5 rounded-xl border-2"
             placeholder="Title"
             placeholderTextColor="grey"
@@ -66,7 +66,7 @@ export default function CreatePost() {
             multiline
             numberOfLines={4}
             maxLength={80}
-            style={{fontSize: hp(2), height: hp(40)}}
+            style={{ fontSize: hp(2), height: hp(40) }}
             placeholder="Description"
             placeholderTextColor="grey"
             className="bg-neutral-100 px-6 py-5 rounded-xl border-2"
@@ -75,11 +75,11 @@ export default function CreatePost() {
         </SafeAreaView>
       </View>
 
-      <View className="px-5 flex-row gap-2.5" style={{marginBottom: hp(5)}}>
-        <Pressable onPress={() =>  router.dismiss(1)} style={{height: hp(6.5)}} className="bg-indigo-300 flex-grow rounded-xl justify-center">
+      <View className="px-5 flex-row gap-2.5" style={{ marginBottom: hp(5) }}>
+        <Pressable onPress={() => router.dismiss(1)} style={{ height: hp(6.5) }} className="bg-indigo-300 flex-grow rounded-xl justify-center">
           <Text className="text-white font-bold tracking-wider text-center">Go back</Text>
         </Pressable>
-        <Pressable onPress={handleCreatePost} style={{height: hp(6.5)}} className="bg-indigo-500 flex-grow rounded-xl justify-center">
+        <Pressable onPress={handleCreatePost} style={{ height: hp(6.5) }} className="bg-indigo-500 flex-grow rounded-xl justify-center">
           <Text className="text-white font-bold tracking-wider text-center">Create</Text>
         </Pressable>
       </View>

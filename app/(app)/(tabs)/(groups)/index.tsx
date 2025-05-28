@@ -4,14 +4,14 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { GroupCard } from "@/components/GroupCard";
-import { useAuth } from "@/context/authContext";
 import { doc, getDoc } from "firebase/firestore";
 import { groupsRef, usersRef } from "@/firebaseConfig";
+import { useAppSelector } from "@/store/store";
 
 export default function Groups() {
     const [groups, setGroups] = useState<{ name: string; members: string[]; groupSize: number, groupId: string }[]>([]);
 
-    const { user } = useAuth();
+    const user = useAppSelector(state => state.auth.user);
 
     const fetchUserGroups = async () => {
         if (user?.userId) {

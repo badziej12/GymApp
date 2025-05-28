@@ -1,16 +1,15 @@
 import { usersRef } from "@/firebaseConfig";
-import { addDoc, collection, doc, getDocs } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
+import { addDoc, collection, doc } from "firebase/firestore";
+import { useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "@/context/authContext";
 import { useDate } from "@/context/dateContext";
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/ExerciseDetails";
 import Timer from "@/components/Timer/Timer";
+import { useAppSelector } from "@/store/store";
 
 export type SeriesType = {
     reps: string,
@@ -26,7 +25,7 @@ const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday"
 
 export default function AddTraining() {
     const { selectedDate } = useDate();
-    const { user } = useAuth();
+    const user = useAppSelector(state => state.auth.user);
     const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [timerIsRunning, setTimerIsRunning] = useState(true);

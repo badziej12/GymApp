@@ -1,6 +1,5 @@
 import { View, Text, Pressable } from 'react-native';
 import React, { useCallback, useState } from 'react';
-import { useAuth } from '@/context/authContext';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { collection, doc, getDocs } from 'firebase/firestore';
@@ -18,7 +17,7 @@ export default function Home() {
   const [trainingsWeekNumber, setTrainingsWeekNumber] = useState(0);
   const [trainingsTotalNumber, setTrainingsTotalNumber] = useState(0);
   const [totalWeight, setTotalWeight] = useState(0);
-  const { logout, user } = useAuth();
+  const user = useAppSelector(state => state.auth.user);
   const { selectedDate } = useDate();
   const userData = useAppSelector(state => state.auth.user);
 
@@ -67,10 +66,6 @@ export default function Home() {
       fetchUserTrainings();
     }, [user, selectedDate])
   );
-
-  const handleSignOut = async () => {
-    await logout();
-  }
 
   return (
     <View className="flex-1 bg-white flex-col">

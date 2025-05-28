@@ -5,7 +5,6 @@ import { Provider } from 'react-redux';
 
 // Import your global CSS file
 import "../global.css"
-import { AuthContextProvider, useAuth } from '@/context/authContext';
 import { useEffect } from 'react';
 import { useFonts } from "@expo-google-fonts/inter/useFonts";
 import { Inter_500Medium } from "@expo-google-fonts/inter/500Medium";
@@ -16,11 +15,16 @@ import { Rubik_400Regular_Italic, Rubik_700Bold_Italic, Rubik_600SemiBold_Italic
 import { Montserrat_700Bold_Italic, Montserrat_700Bold } from "@expo-google-fonts/montserrat";
 import { Roboto_700Bold, Roboto_400Regular } from "@expo-google-fonts/roboto";
 import { ActivityIndicator, View } from "react-native";
-import store from "@/store/store";
+import store, { useAppDispatch, useAppSelector } from "@/store/store";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
+import { updateUserDataAction } from "@/store/auth/auth-actions/update-user-data";
+import { authActions } from "@/store/auth/auth-slice";
 
 const MainLayout = () => {
-  const { isAuthenticated } = useAuth();
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const segments = useSegments();
+  const dispatch = useAppDispatch();
 
   let [fontsLoaded] = useFonts({
     Inter_700Bold,
@@ -35,6 +39,20 @@ const MainLayout = () => {
     Roboto_700Bold,
     Roboto_400Regular
   });
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user: User | null) => {
+
+      if (user) {
+        dispatch(authActions.setIsAuthenticated(true));
+        dispatch(updateUserDataAction(user.uid));
+      } else {
+        dispatch(authActions.setIsAuthenticated(false));
+        dispatch(authActions.setUser(null));
+      }
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     // check if user is authenticated or not
@@ -64,11 +82,9 @@ const MainLayout = () => {
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <AuthContextProvider>
-        <GestureHandlerRootView>
-          <MainLayout />
-        </GestureHandlerRootView>
-      </AuthContextProvider >
+      <GestureHandlerRootView>
+        <MainLayout />
+      </GestureHandlerRootView>
     </Provider>
   )
 }

@@ -4,12 +4,11 @@ import React, { useRef, useState } from 'react'
 import { StatusBar } from 'expo-status-bar';
 import { Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/context/authContext';
+import { signIn } from '@/utils/auth';
 
 export default function SignIn() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
 
   const emailRef = useRef("");
   const passwordRef = useRef("");

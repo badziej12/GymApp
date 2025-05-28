@@ -1,8 +1,7 @@
-import { useAuth } from '@/context/authContext';
+import { logout } from '@/utils/auth';
 import { Pressable, View } from 'react-native';
 
 export const HamburgerMenu = () => {
-    const { logout } = useAuth();
 
     return (
         <Pressable onPress={logout} className='w-10 h-10 bg-burgerBg flex items-center justify-center'>

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type ExtendedUser = {
+export type ExtendedUser = {
     userId: string;
     username: string;
     groups: string[];

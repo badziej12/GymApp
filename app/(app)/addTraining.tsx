@@ -3,7 +3,6 @@ import { addDoc, collection, doc } from "firebase/firestore";
 import { useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { useDate } from "@/context/dateContext";
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
@@ -24,13 +23,15 @@ export type FullExerciseRefType = {
 const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday", "Saturday"];
 
 export default function AddTraining() {
-    const { selectedDate } = useDate();
+    const selectedDateString = useAppSelector(state => state.date.selectedDate);
     const user = useAppSelector(state => state.auth.user);
     const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [timerIsRunning, setTimerIsRunning] = useState(true);
     const exercisesSelectRef = useRef<{ getExercise: () => FullExerciseRefType | null }[]>([]);
     const fullTrainingRef = useRef<FullExerciseRefType[]>([]);
+
+    const selectedDate = new Date(selectedDateString);
 
     const dayOfTheMonth = selectedDate.getDate();
     const monthNumber = selectedDate.getMonth();

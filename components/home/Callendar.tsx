@@ -3,13 +3,15 @@ import { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { format, startOfWeek, addDays, getDate, getDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { useDate } from "@/context/dateContext";
 import { DayCarousel } from "./DayCarousel";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { dateActions } from "@/store/date/date-slice";
 
 
 export const Callendar = () => {
     const [showFullMonth, setShowFullMonth] = useState(false);
-    const { selectedDate, setSelectedDate } = useDate();
+    const selectedDate = useAppSelector(state => state.date.selectedDate);
+    const dispatch = useAppDispatch();
 
     const monthNames = [
         "Styczeń",
@@ -37,8 +39,8 @@ export const Callendar = () => {
 
     // console.log("daysRow", daysRow)
 
-    const startOfCurrentMonth = startOfMonth(selectedDate);
-    const endOfCurrentMonth = endOfMonth(selectedDate);
+    const startOfCurrentMonth = startOfMonth(startOfTheRow);
+    const endOfCurrentMonth = endOfMonth(startOfTheRow);
     const daysOfMonth = eachDayOfInterval({ start: startOfCurrentMonth, end: endOfCurrentMonth });
 
     const startDayOffset = getDay(startOfCurrentMonth) - 1;
@@ -50,8 +52,8 @@ export const Callendar = () => {
         ...Array.from({ length: endDayOffset }, () => null)
     ];
 
-    const handleDateSelect = (day: Date) => {
-        setSelectedDate(day);
+    const handleDateSelect = (day: string) => {
+        dispatch(dateActions.setSelectedDate(day));
     }
 
 
@@ -60,8 +62,8 @@ export const Callendar = () => {
             <View className="flex-col">
                 <View className="flex-col">
                     <View className="mb-3 flex flex-row justify-between px-5">
-                        <Text style={{ fontSize: hp(1.6), fontFamily: "Inter_500Medium" }} className="text-primary text-center">{monthNames[selectedDate.getMonth()]}</Text>
-                        <Text style={{ fontSize: hp(1.6), fontFamily: "Inter_500Medium" }} className="text-primary text-center">{selectedDate.getFullYear()}</Text>
+                        <Text style={{ fontSize: hp(1.6), fontFamily: "Inter_500Medium" }} className="text-primary text-center">{monthNames[startOfTheRow.getMonth()]}</Text>
+                        <Text style={{ fontSize: hp(1.6), fontFamily: "Inter_500Medium" }} className="text-primary text-center">{startOfTheRow.getFullYear()}</Text>
                     </View>
                     {/* <View className="flex-row justify-around mb-4">
                         <View style={styles.dayContainer} className="flex-row justify-center">
@@ -107,8 +109,8 @@ export const Callendar = () => {
                             <View key={i} className="flex-row">
                                 {paddedDaysOfMonth.slice(i * 7, (i + 1) * 7).map((day, index) => (
                                     <Pressable onPress={() => day && handleDateSelect(day)} key={index} style={styles.dayContainer} className="flex-row justify-center">
-                                        <View className={`mb-4 rounded-xl ${day?.toDateString() === selectedDate.toDateString() ? 'bg-slate-800' : ''}`} style={styles.dayElement}>
-                                            <Text className={`${day?.toDateString() === selectedDate.toDateString() ? 'text-white' : 'text-slate-500'}`} style={styles.dayText}>
+                                        <View className={`mb-4 rounded-xl ${day?.toDateString() === startOfTheRow.toDateString() ? 'bg-slate-800' : ''}`} style={styles.dayElement}>
+                                            <Text className={`${day?.toDateString() === startOfTheRow.toDateString() ? 'text-white' : 'text-slate-500'}`} style={styles.dayText}>
                                                 {day ? getDate(day) : ""}
                                             </Text>
                                         </View>

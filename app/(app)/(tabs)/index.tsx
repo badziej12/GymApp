@@ -4,7 +4,6 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-nat
 import { useFocusEffect, useRouter } from 'expo-router';
 import { collection, doc, getDocs } from 'firebase/firestore';
 import { usersRef } from '@/firebaseConfig';
-import { useDate } from '@/context/dateContext';
 import { addDays, startOfWeek } from 'date-fns';
 import { FullExerciseRefType, SeriesType } from '../addTraining';
 import { HeroComponent } from '@/components/home/HeroComponent';
@@ -18,54 +17,56 @@ export default function Home() {
   const [trainingsTotalNumber, setTrainingsTotalNumber] = useState(0);
   const [totalWeight, setTotalWeight] = useState(0);
   const user = useAppSelector(state => state.auth.user);
-  const { selectedDate } = useDate();
+  // const selectedDateString = useAppSelector(state => state.date.selectedDate);
   const userData = useAppSelector(state => state.auth.user);
+
+  // const selectedDate = new Date(selectedDateString);
 
   console.log("user: ", user);
   console.log("user redux: ", userData);
 
 
-  const fetchUserTrainings = async () => {
-    if (user?.userId) {
-      const userRef = doc(usersRef, user?.userId);
-      const userTrainingsRef = collection(userRef, "trainings");
+  // const fetchUserTrainings = async () => {
+  //   if (user?.userId) {
+  //     const userRef = doc(usersRef, user?.userId);
+  //     const userTrainingsRef = collection(userRef, "trainings");
 
-      const querySnapshot = await getDocs(userTrainingsRef);
+  //     const querySnapshot = await getDocs(userTrainingsRef);
 
-      const startOfCurrentWeek = startOfWeek(selectedDate, { weekStartsOn: 1 });
-      const daysOfWeek = Array.from({ length: 7 }, (_, i) => addDays(startOfCurrentWeek, i).toDateString());
+  //     const startOfCurrentWeek = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  //     const daysOfWeek = Array.from({ length: 7 }, (_, i) => addDays(startOfCurrentWeek, i).toDateString());
 
-      let weekTrainings = 0;
-      let sumTotalWeight: number = 0;
+  //     let weekTrainings = 0;
+  //     let sumTotalWeight: number = 0;
 
-      querySnapshot.forEach((doc) => {
-        const dateString = doc.data().date;
-        const exercises = doc.data().exercises;
+  //     querySnapshot.forEach((doc) => {
+  //       const dateString = doc.data().date;
+  //       const exercises = doc.data().exercises;
 
-        exercises.forEach((exercise: FullExerciseRefType) => {
-          exercise.series.forEach((serie: SeriesType) => {
-            const reps = parseInt(serie.reps);
-            const weight = parseInt(serie.weight);
-            sumTotalWeight += reps * weight;
-          })
-        })
+  //       exercises.forEach((exercise: FullExerciseRefType) => {
+  //         exercise.series.forEach((serie: SeriesType) => {
+  //           const reps = parseInt(serie.reps);
+  //           const weight = parseInt(serie.weight);
+  //           sumTotalWeight += reps * weight;
+  //         })
+  //       })
 
-        if (daysOfWeek.includes(dateString)) {
-          weekTrainings++;
-        }
-      })
+  //       if (daysOfWeek.includes(dateString)) {
+  //         weekTrainings++;
+  //       }
+  //     })
 
-      setTrainingsTotalNumber(querySnapshot.docs.length);
-      setTrainingsWeekNumber(weekTrainings);
-      setTotalWeight(sumTotalWeight);
-    }
-  }
+  //     setTrainingsTotalNumber(querySnapshot.docs.length);
+  //     setTrainingsWeekNumber(weekTrainings);
+  //     setTotalWeight(sumTotalWeight);
+  //   }
+  // }
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserTrainings();
-    }, [user, selectedDate])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchUserTrainings();
+  //   }, [user, selectedDate])
+  // );
 
   return (
     <View className="flex-1 bg-white flex-col">

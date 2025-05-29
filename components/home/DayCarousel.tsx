@@ -47,7 +47,7 @@ const DayCarousel: FC<DayCarouselProps> = ({ daysRow }) => {
     return (
         <View className='self-center' style={styles.container}>
             <View className='flex-1'>
-                <Animated.View className={"flex-1"} style={[styles.row, animatedStyle]}>
+                <Animated.View className={"flex-1"} style={[styles.row]}>
                     {daysRow.map((day, index) => {
                         const isSelected = day.toDateString() === selectedDate.toDateString();
                         return (

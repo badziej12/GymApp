@@ -6,7 +6,7 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Timer from "./Timer/Timer";
 import SwipeableItem, { OpenDirection } from 'react-native-swipeable-item';
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
-
+import SerieRow, { SerieRowRefType } from "./addTraining/SerieRow";
 
 
 type ExerciseDetailsProps = {
@@ -14,18 +14,24 @@ type ExerciseDetailsProps = {
     exerciseName: string;
 }
 
+type SerieRowType = {
+    reps: string;
+    weight: string;
+    isDone: boolean;
+}
+
 type RefType = {
     getExercise: () => FullExerciseRefType | null,
 }
 
 const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, exerciseName }, ref) => {
-    const [serieSelects, setserieSelects] = useState([{ id: Date.now(), reps: '', weight: '' }]);
+    const [serieRows, setSerieRows] = useState([{ id: Date.now(), reps: '', weight: '' }]);
     const [timerIsRunning, setTimerIsRunning] = useState(false);
+    const serieRef = useRef<{ getSerie: () => SerieRowType }[]>([]);
 
     const fullExerciseRef = useRef<FullExerciseRefType | null>(null);
     const repRef = useRef<string[]>([]);
     const weightRef = useRef<string[]>([]);
-
 
     useImperativeHandle(ref, () => ({
         getExercise: () => getExercise()
@@ -54,26 +60,20 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
     };
 
     const handleAddSerieSelect = () => {
-        const previousReps = repRef.current[repRef.current.length - 1] || "";
-        const previousWeight = weightRef.current[weightRef.current.length - 1] || "";
-        if (previousReps && previousWeight || serieSelects.length == 0) {
-            setserieSelects(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight }]);
-            copyPreviousSerieValues(previousReps, previousWeight);
+        const serieData = serieRef.current.at(-1)?.getSerie();
+        const previousReps = serieData?.reps || '';
+        const previousWeight = serieData?.weight || '';
+        if (previousReps && previousWeight || serieRows.length == 0) {
+            setSerieRows(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight }]);
         } else {
+            Vibration.vibrate();
             return;
         }
     };
 
-    const handleRemoveSerieSelect = (id: number, index: number) => {
-        setserieSelects(serieSelects.filter(exercise => exercise.id !== id));
-        repRef.current.splice(index, 1);
-        weightRef.current.splice(index, 1);
+    const handleRemoveSerieSelect = (id: number) => {
+        setSerieRows(serieRows.filter(exercise => exercise.id !== id));
     };
-
-    const copyPreviousSerieValues = (previousReps: string, previousWeight: string) => {
-        repRef.current.push(previousReps);
-        weightRef.current.push(previousWeight);
-    }
 
     const handleRestStart = () => {
         setTimerIsRunning(true);
@@ -107,69 +107,19 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
                     <Text className="text-center" style={styles.itemCopy}>?</Text>
                 </View>
             </View>
-            {serieSelects.map((exercise, index) => (
-                <View key={exercise.id} className="mb-2">
-                    <SwipeableItem
-                        item={exercise}
-                        overSwipe={200}
-                        snapPointsLeft={[120]}
-                        snapPointsRight={[]}
-                        onChange={({ openDirection }) => {
-                            console.log(openDirection);
-                            if (openDirection === 'left') {
-                                handleRemoveSerieSelect(exercise.id, index);
-                            }
-                        }}
-                    >
-                        <Animated.View
-                            entering={FadeInRight}
-                            exiting={FadeOutLeft}
-                        >
-                            <View className="flex-row justify-between">
-                                <View className="w-1/12 items-center">
-                                    <View style={styles.inputBox} className="">
-                                        <Text className="text-center" style={styles.itemCopy}>{index + 1}</Text>
-                                    </View>
-                                </View>
-                                <View className="w-4/12 px-2">
-                                    <Text style={styles.previousReps}>+5kg x 10</Text>
-                                </View>
-                                <View className="w-2/12">
-                                    <TextInput
-                                        style={styles.inputBox}
-                                        value={exercise.weight}
-                                        onChangeText={value => {
-                                            const newserieSelects = [...serieSelects];
-                                            newserieSelects[index].weight = value;
-                                            setserieSelects(newserieSelects);
-                                            weightRef.current[index] = value;
-                                        }}
-                                        inputMode={"numeric"}
-                                        className="flex-1 px-4 text-center"
-                                    />
-                                </View>
-                                <View className="w-2/12">
-                                    <TextInput
-                                        style={styles.inputBox}
-                                        inputMode={"numeric"}
-                                        onChangeText={value => {
-                                            const newserieSelects = [...serieSelects];
-                                            newserieSelects[index].reps = value;
-                                            setserieSelects(newserieSelects);
-                                            repRef.current[index] = value;
-                                        }}
-                                        className="flex-1 text-center"
-                                        value={exercise.reps}
-                                        placeholderTextColor={"black"}
-                                    />
-                                </View>
-                                <View className="w-1/12">
-                                    <Pressable className="h-full" style={styles.inputBox} />
-                                </View>
-                            </View>
-                        </Animated.View>
-                    </SwipeableItem>
-                </View>
+            {serieRows.map((serie, index) => (
+                <SerieRow
+                    ref={el => {
+                        if (el) {
+                            serieRef.current[index] = el;
+                        }
+                    }}
+                    key={serie.id}
+                    id={serie.id}
+                    onRemoveSerieSelect={handleRemoveSerieSelect}
+                    initialReps={serie.reps}
+                    initialWeight={serie.weight}
+                />
             ))}
             <Pressable onPress={handleAddSerieSelect} className="flex-row px-4 py-2 mb-4">
                 <View className="flex-grow" style={styles.buttonSeriesLeftLine} />
@@ -190,23 +140,6 @@ const styles = StyleSheet.create({
     trainingName: {
         fontFamily: "Montserrat_700Bold",
         fontSize: 12,
-    },
-    inputBox: {
-        backgroundColor: "#00000080",
-        borderColor: "#000000CC",
-        borderWidth: 1,
-        color: "white",
-        fontSize: 12,
-        width: '100%',
-        textAlign: 'center',
-        fontFamily: "Roboto_400Regular",
-        paddingVertical: 4,
-    },
-    previousReps: {
-        fontFamily: "Roboto_400Regular",
-        fontSize: 12,
-        color: 'white',
-        paddingVertical: 4,
     },
     itemCopy: {
         color: "white",
@@ -244,5 +177,22 @@ const styles = StyleSheet.create({
     restButtonCopy: {
         fontSize: 11,
         fontFamily: "Montserrat_700Bold_Italic",
-    }
+    },
+    inputBox: {
+        backgroundColor: "#00000080",
+        borderColor: "#000000CC",
+        borderWidth: 1,
+        color: "white",
+        fontSize: 12,
+        width: '100%',
+        textAlign: 'center',
+        fontFamily: "Roboto_400Regular",
+        paddingVertical: 4,
+    },
+    previousReps: {
+        fontFamily: "Roboto_400Regular",
+        fontSize: 12,
+        color: 'white',
+        paddingVertical: 4,
+    },
 });

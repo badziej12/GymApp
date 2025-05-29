@@ -1,11 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type ExtendedUser = {
-    userId: string;
-    username: string;
-    groups: string[];
-}
-
 type DateState = {
     selectedDate: string;
 }

@@ -1,7 +1,7 @@
 import { usersRef } from "@/firebaseConfig";
 import { addDoc, collection, doc } from "firebase/firestore";
 import { useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
@@ -9,10 +9,12 @@ import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/ExerciseDetails";
 import Timer from "@/components/Timer/Timer";
 import { useAppSelector } from "@/store/store";
+import { updateUserTraining } from "@/utils/updateUserTraining";
 
 export type SeriesType = {
     reps: string,
     weight: string,
+    isDone: boolean,
 }
 
 export type FullExerciseRefType = {
@@ -38,24 +40,6 @@ export default function AddTraining() {
     const yearNumber = selectedDate.getFullYear();
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
 
-    const updateUserTraining = async (fullTraining: FullExerciseRefType[]) => {
-        const userRef = doc(usersRef, user?.userId);
-        const userTrainingsRef = collection(userRef, "trainings");
-
-        try {
-            await addDoc(userTrainingsRef, {
-                date: selectedDate.toDateString(),
-                exercises: fullTraining,
-            })
-
-            router.dismiss(1);
-        } catch (e) {
-            console.error("Error adding document: ", e);
-            fullTrainingRef.current = [];
-            throw e;
-        }
-
-    }
 
     const handleAddExerciseSelect = (exerciseName: string) => {
         setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
@@ -78,7 +62,7 @@ export default function AddTraining() {
         setTimerIsRunning(prev => !prev);
     }
 
-    const handleSaveTraining = () => {
+    const handleSaveTraining = async () => {
         exercisesSelectRef.current.forEach((ref) => {
             const exercise = ref.getExercise();
             if (exercise) {
@@ -87,7 +71,14 @@ export default function AddTraining() {
         });
 
         if (fullTrainingRef.current.length > 0) {
-            updateUserTraining(fullTrainingRef.current);
+            try {
+                await updateUserTraining(user!, fullTrainingRef.current, selectedDate.toISOString());
+                router.dismiss(1);
+            } catch (e) {
+                fullTrainingRef.current = [];
+            }
+        } else {
+            Alert.alert("Dodaj ćwiczenie");
         }
     };
 

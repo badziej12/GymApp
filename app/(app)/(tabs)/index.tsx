@@ -22,10 +22,6 @@ export default function Home() {
 
   // const selectedDate = new Date(selectedDateString);
 
-  console.log("user: ", user);
-  console.log("user redux: ", userData);
-
-
   // const fetchUserTrainings = async () => {
   //   if (user?.userId) {
   //     const userRef = doc(usersRef, user?.userId);

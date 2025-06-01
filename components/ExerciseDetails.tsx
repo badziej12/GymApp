@@ -1,62 +1,34 @@
-import { FullExerciseRefType, SeriesType } from "@/app/(app)/addTraining";
-import { FontAwesome } from "@expo/vector-icons";
-import { FC, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Pressable, Vibration } from "react-native";
+import { BackgroundClassType, ExerciseType, SerieRowType } from "@/app/(app)/addTraining";
+import { FC, Ref, useImperativeHandle, useRef, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Timer from "./Timer/Timer";
-import SwipeableItem, { OpenDirection } from 'react-native-swipeable-item';
-import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
-import SerieRow, { SerieRowRefType } from "./addTraining/SerieRow";
+import SerieRow from "./addTraining/SerieRow";
 
+type ExerciseRefType = {
+    getExercise: () => ExerciseType,
+}
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
+    switchBgClass: (bgClass: BackgroundClassType) => void;
     exerciseName: string;
+    ref: Ref<ExerciseRefType>;
 }
 
-type SerieRowType = {
-    reps: string;
-    weight: string;
-    isDone: boolean;
-}
-
-type RefType = {
-    getExercise: () => FullExerciseRefType | null,
-}
-
-const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, exerciseName }, ref) => {
-    const [serieRows, setSerieRows] = useState([{ id: Date.now(), reps: '', weight: '' }]);
+const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseName, ref }) => {
+    const [serieRows, setSerieRows] = useState<SerieRowType[]>([{ id: Date.now(), reps: '', weight: '', isDone: false }]);
     const [timerIsRunning, setTimerIsRunning] = useState(false);
-    const serieRef = useRef<{ getSerie: () => SerieRowType }[]>([]);
-
-    const fullExerciseRef = useRef<FullExerciseRefType | null>(null);
-    const repRef = useRef<string[]>([]);
-    const weightRef = useRef<string[]>([]);
+    const serieRef = useRef<{ getSerie: (toFinish?: boolean) => SerieRowType }[]>([]);
 
     useImperativeHandle(ref, () => ({
         getExercise: () => getExercise()
     }));
 
     const getExercise = () => {
-        const reps = repRef.current;
-        const weights = weightRef.current;
+        const exercise = serieRef.current.map((serie) => serie.getSerie(true));
 
-        const series: SeriesType[] = [];
-
-        for (let i = 0; i < reps.length; i++) {
-            if (weights[i] && reps[i]) {
-                series.push({ reps: reps[i], weight: weights[i] });
-            }
-        }
-
-        if (series.length > 0) {
-            fullExerciseRef.current = {
-                exerciseName: exerciseName,
-                series: series
-            };
-        }
-
-        return fullExerciseRef.current;
+        return { exerciseName, series: exercise };
     };
 
     const handleAddSerieSelect = () => {
@@ -64,7 +36,7 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
         const previousReps = serieData?.reps || '';
         const previousWeight = serieData?.weight || '';
         if (previousReps && previousWeight || serieRows.length == 0) {
-            setSerieRows(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight }]);
+            setSerieRows(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight, isDone: false }]);
         } else {
             Vibration.vibrate();
             return;
@@ -76,11 +48,13 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
     };
 
     const handleRestStart = () => {
+        switchBgClass("bg-azure");
         setTimerIsRunning(true);
     }
 
     const handleRestFinish = () => {
         setTimerIsRunning(false);
+        switchBgClass("bg-secondaryGreen");
         Vibration.vibrate();
     }
 
@@ -115,10 +89,9 @@ const ExerciseDetails = forwardRef<RefType, ExerciseDetailsProps>(({ onRemove, e
                         }
                     }}
                     key={serie.id}
-                    id={serie.id}
+                    serie={serie}
+                    index={index}
                     onRemoveSerieSelect={handleRemoveSerieSelect}
-                    initialReps={serie.reps}
-                    initialWeight={serie.weight}
                 />
             ))}
             <Pressable onPress={handleAddSerieSelect} className="flex-row px-4 py-2 mb-4">

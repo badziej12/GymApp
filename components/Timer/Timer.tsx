@@ -14,6 +14,8 @@ const Timer = ({ mode, duration = 0, isRunning, onFinish, textProps }: TimerProp
     const intervalRef = useRef<number | null>(null);
 
     useEffect(() => {
+        if (!isRunning) return;
+
         if (isRunning) {
             intervalRef.current = setInterval(() => {
                 setTime(prevTime => {

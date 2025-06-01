@@ -1,42 +1,58 @@
-import { FC, Ref, RefObject, useImperativeHandle, useRef, useState } from "react";
+import { FC, Ref, useImperativeHandle, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Vibration } from "react-native";
 import SwipeableItem from 'react-native-swipeable-item';
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
+import { SerieRowType } from "@/app/(app)/addTraining";
 
-export type SerieRowRefType = {
-    getSerie: () => {
-        reps: string;
-        weight: string;
-        isDone: boolean;
-    }
+type SerieRowRefType = {
+    getSerie: (toFinish?: boolean) => SerieRowType;
 }
 
 type SerieRowProps = {
     onRemoveSerieSelect: (id: number) => void;
-    id: number;
-    initialWeight: string;
-    initialReps: string;
+    serie: SerieRowType;
+    index: number;
     ref: Ref<SerieRowRefType>;
 }
 
-const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, id, initialWeight, initialReps, ref }) => {
+const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, serie, index, ref }) => {
     const [isDone, setIsDone] = useState(false);
-    const [isEmpty, setIsEmpty] = useState({ reps: false, weight: false });
-    const [weightValue, setWeightValue] = useState(initialWeight);
-    const [repsValue, setRepsValue] = useState(initialReps);
+    const [isEmpty, setIsEmpty] = useState({ reps: false, weight: false, isDone: false });
+    const [weightValue, setWeightValue] = useState(serie.weight);
+    const [repsValue, setRepsValue] = useState(serie.reps);
 
     const handleDonePress = () => {
         setIsDone(prev => {
             !prev && Vibration.vibrate();
             return !prev;
         });
+
+        if (isEmpty.isDone) {
+            setIsEmpty(prev => {
+                return {
+                    ...prev,
+                    isDone: false,
+                }
+            })
+        }
+    }
+
+    const handleChangeText = (stateName: "reps" | "weight") => {
+        if (isEmpty[stateName]) {
+            setIsEmpty(prev => {
+                return {
+                    ...prev,
+                    [stateName]: false,
+                }
+            })
+        }
     }
 
     useImperativeHandle(ref, () => ({
-        getSerie: () => getSerie()
+        getSerie: (toFinish?: boolean) => getSerie(toFinish)
     }));
 
-    const getSerie = () => {
+    const getSerie = (toFinish = false) => {
         if (!repsValue) {
             setIsEmpty(prev => {
                 return {
@@ -69,7 +85,16 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, id, initialWeight, i
             });
         }
 
-        return { reps: repsValue, weight: weightValue, isDone };
+        if (toFinish && !isDone) {
+            setIsEmpty(prev => {
+                return {
+                    ...prev,
+                    isDone: true,
+                }
+            })
+        }
+
+        return { id: serie.id, reps: repsValue, weight: weightValue, isDone };
     }
 
     return (
@@ -82,7 +107,7 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, id, initialWeight, i
                 onChange={({ openDirection }) => {
                     console.log(openDirection);
                     if (openDirection === 'left') {
-                        onRemoveSerieSelect(id);
+                        onRemoveSerieSelect(serie.id);
                     }
                 }}
             >
@@ -104,7 +129,10 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, id, initialWeight, i
                                 style={[styles.inputBox, { backgroundColor: isEmpty.weight ? "red" : "#00000080" }]}
                                 inputMode={"numeric"}
                                 className="flex-1 px-4 text-center"
-                                onChangeText={setWeightValue}
+                                onChangeText={(val) => {
+                                    setWeightValue(val);
+                                    handleChangeText("weight");
+                                }}
                                 value={weightValue}
                             />
                         </View>
@@ -114,12 +142,15 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, id, initialWeight, i
                                 inputMode={"numeric"}
                                 className="flex-1 text-center"
                                 placeholderTextColor={"black"}
-                                onChangeText={setRepsValue}
+                                onChangeText={(val) => {
+                                    setRepsValue(val);
+                                    handleChangeText("reps");
+                                }}
                                 value={repsValue}
                             />
                         </View>
                         <View className="w-1/12">
-                            <Pressable onPress={handleDonePress} className="h-full" style={[styles.inputBox, { backgroundColor: isDone ? "#FFF" : "#00000080" }]} />
+                            <Pressable onPress={handleDonePress} className="h-full" style={[styles.inputBox, { backgroundColor: isDone ? "#FFF" : "#00000080", borderColor: isEmpty.isDone ? "red" : "#000000CC" }]} />
                         </View>
                     </View>
                 </Animated.View>

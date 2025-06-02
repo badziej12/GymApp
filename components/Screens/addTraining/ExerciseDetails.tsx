@@ -2,8 +2,8 @@ import { BackgroundClassType, ExerciseType, SerieRowType } from "@/app/(app)/add
 import { FC, Ref, useImperativeHandle, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Timer from "./Timer/Timer";
-import SerieRow from "./addTraining/SerieRow";
+import Timer from "../../Timer/Timer";
+import SerieRow from "./SerieRow";
 
 type ExerciseRefType = {
     getExercise: () => ExerciseType,

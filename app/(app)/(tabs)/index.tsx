@@ -5,7 +5,6 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { collection, doc, getDocs } from 'firebase/firestore';
 import { usersRef } from '@/firebaseConfig';
 import { addDays, startOfWeek } from 'date-fns';
-import { FullExerciseRefType, SeriesType } from '../addTraining';
 import { HeroComponent } from '@/components/home/HeroComponent';
 import { UserStats } from '@/components/UserStats';
 import { NotificationsMenu } from '@/components/home/NotificationsMenu';

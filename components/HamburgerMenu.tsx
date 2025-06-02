@@ -1,4 +1,4 @@
-import { logout } from '@/utils/auth';
+import { logout } from '@/firebase/auth';
 import { Pressable, View } from 'react-native';
 
 export const HamburgerMenu = () => {

@@ -13,16 +13,21 @@ type ExerciseModalProps = {
     onAddExercise: (exerciseName: string) => void,
 }
 
+type TrainingsType = {
+    name: string;
+    category: string[];
+}
+
 const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, onAddExercise }) => {
     const [searchText, setSearchText] = useState("");
     const [selectedTraining, setSelectedTraining] = useState("");
-    const [trainings, setTrainings] = useState<string[]>([]);
+    const [trainings, setTrainings] = useState<TrainingsType[]>([]);
 
     const groupedTrainings = trainings
-        .filter(name => name.toLowerCase().includes(searchText.toLowerCase()))
-        .sort((a, b) => a.localeCompare(b))
-        .reduce((acc: Record<string, string[]>, training) => {
-            const letter = training[0].toUpperCase();
+        .filter(training => training.name.toLowerCase().includes(searchText.toLowerCase()))
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .reduce((acc: Record<string, TrainingsType[]>, training) => {
+            const letter = training.name[0].toUpperCase();
             if (!acc[letter]) acc[letter] = [];
             acc[letter].push(training);
             return acc;
@@ -38,7 +43,8 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
 
     const fetchTrainings = async () => {
         const docSnap = await getDocs(trainingsRef);
-        setTrainings(docSnap.docs[0].get("trainings"));
+        const trainings = docSnap.docs.map(training => training.data()) as TrainingsType[];
+        setTrainings(trainings);
     }
 
     useEffect(() => {
@@ -72,7 +78,7 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
                                             <View className="h-0.5 w-full bg-white" />
                                         </View>
                                         {groupedTrainings[letter].map(training => (
-                                            <TrainingCard key={training} trainingName={training} selectedTraining={selectedTraining} onSelectTraining={handleSelectTraining} />
+                                            <TrainingCard key={training.name} trainingName={training.name} trainingCategory={training.category} selectedTraining={selectedTraining} onSelectTraining={handleSelectTraining} />
                                         ))}
                                     </View>
                                 ))}

@@ -4,10 +4,10 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
-import ExerciseDetails from "@/components/ExerciseDetails";
+import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
 import Timer from "@/components/Timer/Timer";
 import { useAppSelector } from "@/store/store";
-import { updateUserTraining } from "@/utils/updateUserTraining";
+import { updateUserTraining } from "@/firebase/updateUserTraining";
 
 type SerieType = {
     reps: string,
@@ -53,7 +53,7 @@ export default function AddTraining() {
 
 
     const handleAddExerciseSelect = (exerciseName: string) => {
-        setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
+        exerciseName && setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
         setIsModalVisible(false);
     };
 

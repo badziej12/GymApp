@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import CustomKeyboardView from '@/components/CustomKeyboardView';
-import { signUp } from '@/utils/auth';
+import { signUp } from '@/firebase/auth';
 
 export default function SignUp() {
   const router = useRouter();

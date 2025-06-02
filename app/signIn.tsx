@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react'
 import { StatusBar } from 'expo-status-bar';
 import { Octicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { signIn } from '@/utils/auth';
+import { signIn } from '@/firebase/auth';
 
 export default function SignIn() {
   const router = useRouter();

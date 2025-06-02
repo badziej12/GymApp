@@ -1,35 +1,48 @@
-import { usersRef } from "@/firebaseConfig";
-import { addDoc, collection, doc } from "firebase/firestore";
 import { useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from "react-native";
+import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
-import ExerciseDetails from "@/components/ExerciseDetails";
+import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
 import Timer from "@/components/Timer/Timer";
 import { useAppSelector } from "@/store/store";
+import { updateUserTraining } from "@/firebase/updateUserTraining";
 
-export type SeriesType = {
+type SerieType = {
     reps: string,
     weight: string,
 }
 
-export type FullExerciseRefType = {
-    exerciseName: string,
-    series: SeriesType[],
+export type SerieRowType = {
+    id: number;
+    reps: string;
+    weight: string;
+    isDone: boolean;
 }
+
+export type ExerciseType = {
+    exerciseName: string,
+    series: SerieRowType[],
+}
+
+export type CleanExerciseType = {
+    exerciseName: string,
+    series: SerieType[],
+}
+
+export type BackgroundClassType = "bg-secondaryGreen" | "bg-secondaryBrown" | "bg-azure";
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday", "Saturday"];
 
 export default function AddTraining() {
     const selectedDateString = useAppSelector(state => state.date.selectedDate);
     const user = useAppSelector(state => state.auth.user);
+    const [bgClass, setBgClass] = useState<BackgroundClassType>("bg-secondaryGreen");
     const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [timerIsRunning, setTimerIsRunning] = useState(true);
-    const exercisesSelectRef = useRef<{ getExercise: () => FullExerciseRefType | null }[]>([]);
-    const fullTrainingRef = useRef<FullExerciseRefType[]>([]);
+    const exerciseRefs = useRef<Record<number, { getExercise: () => ExerciseType }>>({});
 
     const selectedDate = new Date(selectedDateString);
 
@@ -38,27 +51,9 @@ export default function AddTraining() {
     const yearNumber = selectedDate.getFullYear();
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
 
-    const updateUserTraining = async (fullTraining: FullExerciseRefType[]) => {
-        const userRef = doc(usersRef, user?.userId);
-        const userTrainingsRef = collection(userRef, "trainings");
-
-        try {
-            await addDoc(userTrainingsRef, {
-                date: selectedDate.toDateString(),
-                exercises: fullTraining,
-            })
-
-            router.dismiss(1);
-        } catch (e) {
-            console.error("Error adding document: ", e);
-            fullTrainingRef.current = [];
-            throw e;
-        }
-
-    }
 
     const handleAddExerciseSelect = (exerciseName: string) => {
-        setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
+        exerciseName && setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
         setIsModalVisible(false);
     };
 
@@ -71,27 +66,61 @@ export default function AddTraining() {
     }
 
     const handleRemoveExerciseSelect = (id: number) => {
-        setExerciseSelects(exerciseSelects.filter(exercise => exercise.id !== id));
+        setExerciseSelects(prev => prev.filter(exercise => exercise.id !== id));
+        delete exerciseRefs.current[id];
     };
 
     const handlePauseTimer = () => {
-        setTimerIsRunning(prev => !prev);
+        setTimerIsRunning(wasRunning => {
+            if (!wasRunning) {
+                setBgClass("bg-secondaryGreen");
+            } else {
+                setBgClass("bg-secondaryBrown");
+            }
+
+            return !wasRunning;
+        });
     }
 
-    const handleSaveTraining = () => {
-        exercisesSelectRef.current.forEach((ref) => {
-            const exercise = ref.getExercise();
-            if (exercise) {
-                fullTrainingRef.current.push(exercise);
-            }
-        });
+    const handleSwitchBgClass = (bgClass: BackgroundClassType) => {
+        setBgClass(bgClass);
+    }
 
-        if (fullTrainingRef.current.length > 0) {
-            updateUserTraining(fullTrainingRef.current);
+    const handleSaveTraining = async () => {
+        try {
+            const exercises = Object.values(exerciseRefs.current).map(ref => ref.getExercise()) as ExerciseType[];
+
+            exercises.forEach(exercise => {
+                exercise?.series.forEach((serie) => {
+                    if (!serie.isDone || !serie.reps || !serie.weight) {
+                        Vibration.vibrate();
+                        throw new Error("Nie uzupełniono wszystkich serii");
+                    }
+                })
+            })
+
+            const cleanedExercises = exercises.map((exercise) => {
+                const cleanedSeries = exercise.series.map(({ id, isDone, ...rest }) => rest)
+                return {
+                    exerciseName: exercise.exerciseName,
+                    series: cleanedSeries,
+                }
+            });
+
+            if (exercises.length > 0) {
+                await updateUserTraining(user!, exercises, selectedDate.toISOString());
+                router.dismiss(1);
+            } else {
+                throw Error("Dodaj ćwiczenie");
+            }
+        } catch (e: any) {
+            let errorMessage = "Wystąpił nieoczekiwany błąd";
+            if (e instanceof Error) {
+                errorMessage = e.message;
+            }
+            Alert.alert(errorMessage);
         }
     };
-
-    const bgColorClass = timerIsRunning ? "bg-secondaryGreen" : "bg-secondaryBrown";
 
     return (
         <View className="flex-1 h-full">
@@ -99,7 +128,7 @@ export default function AddTraining() {
                 <Image style={styles.avatarImage} source={require('@/assets/images/hero-avatar.png')} />
                 <View style={styles.floorBg} className="bg-background-700 h-2/5" />
             </View>
-            <View className={`pt-4 px-6 pb-12 ${bgColorClass} flex-grow flex-col`}>
+            <View className={`pt-4 px-6 pb-12 ${bgClass} flex-grow flex-col`}>
                 <View className="mb-4 flex-col">
                     <View className="flex-row justify-between mb-1">
                         <Text style={styles.title}>New Workout</Text>
@@ -111,16 +140,21 @@ export default function AddTraining() {
                 </View>
                 <View className="pb-4 flex-grow">
                     <ScrollView className="h-1" showsVerticalScrollIndicator={false}>
-                        {exerciseSelects.map((exercise, index) =>
+                        {exerciseSelects.map((exercise) =>
                             <ExerciseDetails
                                 ref={el => {
                                     if (el) {
-                                        exercisesSelectRef.current[index] = el;
+                                        exerciseRefs.current[exercise.id] = {
+                                            getExercise: el.getExercise,
+                                        };
+                                    } else {
+                                        delete exerciseRefs.current[exercise.id];
                                     }
                                 }}
                                 key={exercise.id}
                                 exerciseName={exercise.exerciseName}
                                 onRemove={() => handleRemoveExerciseSelect(exercise.id)}
+                                switchBgClass={handleSwitchBgClass}
                             />
                         )}
                         <ButtonComponent onPress={handleOpenModal} title="Add exercise" variant="dashed" />

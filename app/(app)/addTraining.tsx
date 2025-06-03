@@ -66,8 +66,18 @@ export default function AddTraining() {
     }, []);
 
 
-    const handleAddExerciseSelect = (exerciseName: string) => {
-        exerciseName && setExerciseSelects((prevExercises) => [...prevExercises, { id: Date.now(), exerciseName }]);
+    const handleAddExerciseSelect = (exerciseNames: string[]) => {
+        if (exerciseNames.length > 0) {
+            setExerciseSelects((prevExercises) => {
+                const newExercises = exerciseNames.map((exercise, index) => ({
+                    id: Date.now() + index,
+                    exerciseName: exercise,
+                }));
+
+                return [...prevExercises, ...newExercises];
+            });
+        }
+
         setIsModalVisible(false);
     };
 

@@ -4,8 +4,6 @@ import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Timer from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
-import { fetchLastTrainings } from "@/firebase/fetch-last-trainings";
-import { useAppSelector } from "@/store/store";
 import { DocumentData } from "firebase/firestore";
 
 type ExerciseRefType = {
@@ -36,7 +34,6 @@ const getLastTrainingWithExercise = (docs: DocumentData[], exerciseName: string)
 }
 
 const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseName, trainingsDocs, ref }) => {
-    const user = useAppSelector(state => state.auth.user);
     const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
     const [serieRows, setSerieRows] = useState<SerieRowType[]>([{ id: Date.now(), reps: '', weight: '', isDone: false }]);
     const [timerIsRunning, setTimerIsRunning] = useState(false);

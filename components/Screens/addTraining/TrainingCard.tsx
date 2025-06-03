@@ -4,12 +4,12 @@ import { Pressable, View, Text, StyleSheet } from "react-native"
 type TrainingCardProps = {
     trainingName: string,
     trainingCategory: string[],
-    selectedTraining: string,
+    selectedTrainings: string[],
     onSelectTraining: (name: string) => void
 }
 
-const TrainingCard: FC<TrainingCardProps> = ({ trainingName, trainingCategory, selectedTraining, onSelectTraining }) => {
-    const isSelected = trainingName === selectedTraining;
+const TrainingCard: FC<TrainingCardProps> = ({ trainingName, trainingCategory, selectedTrainings, onSelectTraining }) => {
+    const isSelected = selectedTrainings.includes(trainingName);
 
     return (
         <Pressable onPress={() => onSelectTraining(trainingName)} className="flex-row mb-4">

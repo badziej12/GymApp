@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert, Vibration } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Image, Alert, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
@@ -8,6 +8,8 @@ import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
 import Timer from "@/components/Timer/Timer";
 import { useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
+import { fetchLastTrainings } from "@/firebase/fetch-last-trainings";
+import { DocumentData } from "firebase/firestore";
 
 export type SerieType = {
     reps: string,
@@ -44,6 +46,7 @@ export default function AddTraining() {
     const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [timerIsRunning, setTimerIsRunning] = useState(true);
+    const [lastTrainingsDocs, setLastTrainingDocs] = useState<DocumentData[]>([]);
     const exerciseRefs = useRef<Record<number, { getExercise: () => ExerciseType }>>({});
 
     const selectedDate = new Date(selectedDateString);
@@ -52,6 +55,15 @@ export default function AddTraining() {
     const monthNumber = selectedDate.getMonth();
     const yearNumber = selectedDate.getFullYear();
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetchLastTrainings(user?.userId!);
+            setLastTrainingDocs(response);
+        }
+
+        fetchData();
+    }, []);
 
 
     const handleAddExerciseSelect = (exerciseName: string) => {
@@ -155,6 +167,7 @@ export default function AddTraining() {
                                 }}
                                 key={exercise.id}
                                 exerciseName={exercise.exerciseName}
+                                trainingsDocs={lastTrainingsDocs}
                                 onRemove={() => handleRemoveExerciseSelect(exercise.id)}
                                 switchBgClass={handleSwitchBgClass}
                             />

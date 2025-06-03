@@ -10,7 +10,7 @@ import { getDocs } from "firebase/firestore";
 type ExerciseModalProps = {
     isModalVisible: boolean,
     onCloseModal: () => void,
-    onAddExercise: (exerciseName: string) => void,
+    onAddExercise: (exerciseName: string[]) => void,
 }
 
 type TrainingsType = {
@@ -20,7 +20,7 @@ type TrainingsType = {
 
 const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, onAddExercise }) => {
     const [searchText, setSearchText] = useState("");
-    const [selectedTraining, setSelectedTraining] = useState("");
+    const [selectedTrainings, setSelectedTrainings] = useState<string[]>([]);
     const [trainings, setTrainings] = useState<TrainingsType[]>([]);
 
     const groupedTrainings = trainings
@@ -38,7 +38,14 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
     }
 
     const handleSelectTraining = (name: string) => {
-        setSelectedTraining(name);
+        setSelectedTrainings((currentSelectedTrainings) => {
+            const newSelectedTrainingss =
+                currentSelectedTrainings.includes(name)
+                    ? currentSelectedTrainings.filter(currentSelectedTrainings => currentSelectedTrainings !== name)
+                    : [...currentSelectedTrainings, name];
+
+            return newSelectedTrainingss;
+        });
     }
 
     const fetchTrainings = async () => {
@@ -67,7 +74,7 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
                         <View className="p-4 h-full" style={{ backgroundColor: "#414141", padding: 16 }}>
                             <View className="flex-row justify-between mb-4">
                                 <Text style={styles.heading} className="uppercase text-white">Add new exercise</Text>
-                                <Pressable onPress={() => onAddExercise(selectedTraining)} className=""><Text className="uppercase text-sunny" style={styles.heading}>Add+</Text></Pressable>
+                                <Pressable onPress={() => onAddExercise(selectedTrainings)} className=""><Text className="uppercase text-sunny" style={styles.heading}>Add+</Text></Pressable>
                             </View>
                             <SearchComponent searchText={searchText} onSearchChange={handleSearchChange} />
                             <ScrollView >
@@ -78,7 +85,7 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
                                             <View className="h-0.5 w-full bg-white" />
                                         </View>
                                         {groupedTrainings[letter].map(training => (
-                                            <TrainingCard key={training.name} trainingName={training.name} trainingCategory={training.category} selectedTraining={selectedTraining} onSelectTraining={handleSelectTraining} />
+                                            <TrainingCard key={training.name} trainingName={training.name} trainingCategory={training.category} selectedTrainings={selectedTrainings} onSelectTraining={handleSelectTraining} />
                                         ))}
                                     </View>
                                 ))}

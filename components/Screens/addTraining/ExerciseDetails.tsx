@@ -4,8 +4,7 @@ import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Timer from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
-import { fetchLastTrainingWithExercise } from "@/firebase/fetchLastTrainingWithExercise";
-import { useAppSelector } from "@/store/store";
+import { DocumentData } from "firebase/firestore";
 
 type ExerciseRefType = {
     getExercise: () => ExerciseType,
@@ -15,19 +14,34 @@ type ExerciseDetailsProps = {
     onRemove: () => void;
     switchBgClass: (bgClass: BackgroundClassType) => void;
     exerciseName: string;
+    trainingsDocs: DocumentData[];
     ref: Ref<ExerciseRefType>;
 }
 
-const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseName, ref }) => {
-    const user = useAppSelector(state => state.auth.user);
+const getLastTrainingWithExercise = (docs: DocumentData[], exerciseName: string) => {
+    for (const doc of docs) {
+        const data = doc.data();
+        const exercises = data.exercises || [];
+
+        const hasExercise = exercises.some((exercise: any) => exercise.exerciseName === exerciseName);
+
+        if (hasExercise) {
+            return data;
+        }
+    }
+
+    return null
+}
+
+const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseName, trainingsDocs, ref }) => {
     const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
     const [serieRows, setSerieRows] = useState<SerieRowType[]>([{ id: Date.now(), reps: '', weight: '', isDone: false }]);
     const [timerIsRunning, setTimerIsRunning] = useState(false);
     const serieRef = useRef<{ getSerie: (toFinish?: boolean) => SerieRowType }[]>([]);
 
     useEffect(() => {
-        const getPreviousResults = async () => {
-            const training = await fetchLastTrainingWithExercise(user?.userId!, exerciseName) as { date: string, exercises: CleanExerciseType[] } | null;
+        const getPreviousResults = () => {
+            const training = getLastTrainingWithExercise(trainingsDocs, exerciseName) as { date: string, exercises: CleanExerciseType[] } | null;
 
             if (training) {
                 const exercise = training.exercises.find(exercise => exercise.exerciseName === exerciseName);

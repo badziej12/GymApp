@@ -9,7 +9,7 @@ import Timer from "@/components/Timer/Timer";
 import { useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
 
-type SerieType = {
+export type SerieType = {
     reps: string,
     weight: string,
 }
@@ -19,6 +19,8 @@ export type SerieRowType = {
     reps: string;
     weight: string;
     isDone: boolean;
+    previousReps?: string;
+    previousWeight?: string;
 }
 
 export type ExerciseType = {
@@ -108,7 +110,7 @@ export default function AddTraining() {
             });
 
             if (exercises.length > 0) {
-                await updateUserTraining(user!, exercises, selectedDate.toISOString());
+                await updateUserTraining(user!, cleanedExercises, selectedDate.toISOString());
                 router.dismiss(1);
             } else {
                 throw Error("Dodaj ćwiczenie");

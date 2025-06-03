@@ -97,6 +97,14 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, serie, index, ref })
         return { id: serie.id, reps: repsValue, weight: weightValue, isDone };
     }
 
+    let previousResult;
+
+    if (serie.previousWeight && serie.previousWeight) {
+        previousResult = `${serie.previousWeight}kg x ${serie.previousReps}`;
+    } else {
+        previousResult = '-'
+    }
+
     return (
         <View className="mb-2">
             <SwipeableItem
@@ -122,7 +130,7 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, serie, index, ref })
                             </View>
                         </View>
                         <View className="w-4/12 px-2">
-                            <Text style={styles.previousReps}>+5kg x 10</Text>
+                            <Text style={styles.previousReps}>{previousResult}</Text>
                         </View>
                         <View className="w-2/12">
                             <TextInput

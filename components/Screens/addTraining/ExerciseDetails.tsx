@@ -1,9 +1,11 @@
-import { BackgroundClassType, ExerciseType, SerieRowType } from "@/app/(app)/addTraining";
-import { FC, Ref, useImperativeHandle, useRef, useState } from "react";
+import { BackgroundClassType, CleanExerciseType, ExerciseType, SerieRowType, SerieType } from "@/app/(app)/addTraining";
+import { FC, Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Timer from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
+import { fetchLastTrainingWithExercise } from "@/firebase/fetchLastTrainingWithExercise";
+import { useAppSelector } from "@/store/store";
 
 type ExerciseRefType = {
     getExercise: () => ExerciseType,
@@ -17,9 +19,37 @@ type ExerciseDetailsProps = {
 }
 
 const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseName, ref }) => {
+    const user = useAppSelector(state => state.auth.user);
+    const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
     const [serieRows, setSerieRows] = useState<SerieRowType[]>([{ id: Date.now(), reps: '', weight: '', isDone: false }]);
     const [timerIsRunning, setTimerIsRunning] = useState(false);
     const serieRef = useRef<{ getSerie: (toFinish?: boolean) => SerieRowType }[]>([]);
+
+    useEffect(() => {
+        const getPreviousResults = async () => {
+            const training = await fetchLastTrainingWithExercise(user?.userId!, exerciseName) as { date: string, exercises: CleanExerciseType[] } | null;
+
+            if (training) {
+                const exercise = training.exercises.find(exercise => exercise.exerciseName === exerciseName);
+
+                if (exercise) {
+                    const previousSeries = exercise.series.map((serie) => serie);
+
+                    setLastResults(previousSeries);
+
+                    setSerieRows((currentSerieRows) =>
+                        currentSerieRows.map((row, index) => ({
+                            ...row,
+                            previousReps: previousSeries[index]?.reps || '',
+                            previousWeight: previousSeries[index]?.weight || '',
+                        }))
+                    );
+                }
+            }
+        }
+
+        getPreviousResults();
+    }, []);
 
     useImperativeHandle(ref, () => ({
         getExercise: () => getExercise()
@@ -32,11 +62,15 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
     };
 
     const handleAddSerieSelect = () => {
-        const serieData = serieRef.current.at(-1)?.getSerie();
+        const lastIndex = serieRows.length;
+        const serieData = serieRef.current[lastIndex - 1]?.getSerie();
         const previousReps = serieData?.reps || '';
         const previousWeight = serieData?.weight || '';
+        const lastSerieResult = lastResults && lastIndex >= 0 && lastIndex < lastResults.length
+            ? lastResults[lastIndex]
+            : null;
         if (previousReps && previousWeight || serieRows.length == 0) {
-            setSerieRows(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight, isDone: false }]);
+            setSerieRows(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight, isDone: false, previousReps: lastSerieResult?.reps, previousWeight: lastSerieResult?.weight }]);
         } else {
             Vibration.vibrate();
             return;

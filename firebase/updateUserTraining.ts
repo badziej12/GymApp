@@ -1,10 +1,10 @@
-import { ExerciseType } from "@/app/(app)/addTraining";
+import { CleanExerciseType } from "@/app/(app)/addTraining";
 import { usersRef } from "@/firebaseConfig";
 import { ExtendedUser } from "@/store/auth/auth-slice";
 import { addDoc, collection, doc } from "firebase/firestore";
 import { Alert } from "react-native";
 
-export const updateUserTraining = async (user: ExtendedUser, fullTraining: ExerciseType[], selectedDate: string) => {
+export const updateUserTraining = async (user: ExtendedUser, fullTraining: CleanExerciseType[], selectedDate: string) => {
     const userRef = doc(usersRef, user?.userId);
     const userTrainingsRef = collection(userRef, "trainings");
 

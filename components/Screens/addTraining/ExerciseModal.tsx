@@ -6,6 +6,8 @@ import SearchComponent from "./SearchComponent";
 import ExerciseCard from "./ExerciseCard";
 import { trainingsRef } from "@/firebaseConfig";
 import { getDocs } from "firebase/firestore";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { exerciseActions } from "@/store/exercise/exercise-slice";
 
 type ExerciseModalProps = {
     isModalVisible: boolean,
@@ -13,7 +15,7 @@ type ExerciseModalProps = {
     onAddExercise: (exerciseName: string[]) => void,
 }
 
-type ExerciseType = {
+export type AvailableExerciseType = {
     name: string;
     category: string[];
 }
@@ -21,12 +23,13 @@ type ExerciseType = {
 const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, onAddExercise }) => {
     const [searchText, setSearchText] = useState("");
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
-    const [availableExercises, setAvailableExercises] = useState<ExerciseType[]>([]);
+    const availableExercises = useAppSelector(state => state.exercise.availableExercises);
+    const dispatch = useAppDispatch();
 
     const groupedAvailableExercises = availableExercises
         .filter(training => training.name.toLowerCase().includes(searchText.toLowerCase()))
         .sort((a, b) => a.name.localeCompare(b.name))
-        .reduce((acc: Record<string, ExerciseType[]>, training) => {
+        .reduce((acc: Record<string, AvailableExerciseType[]>, training) => {
             const letter = training.name[0].toUpperCase();
             if (!acc[letter]) acc[letter] = [];
             acc[letter].push(training);
@@ -50,8 +53,8 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
 
     const fetchAvailableExercises = async () => {
         const docSnap = await getDocs(trainingsRef);
-        const availableExercises = docSnap.docs.map(training => training.data()) as ExerciseType[];
-        setAvailableExercises(availableExercises);
+        const data = docSnap.docs.map(training => training.data()) as AvailableExerciseType[];
+        dispatch(exerciseActions.setAvailableExercises(data));
     }
 
     useEffect(() => {

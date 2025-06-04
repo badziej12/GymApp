@@ -1,47 +1,45 @@
-import { BackgroundClassType, CleanExerciseType, ExerciseType, SerieRowType, SerieType } from "@/app/(app)/addTraining";
-import { FC, Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { BackgroundClassType, CleanExerciseType, SerieRowType, SerieType } from "@/app/(app)/addTraining";
+import { FC, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Timer from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
-import { DocumentData } from "firebase/firestore";
-
-type ExerciseRefType = {
-    getExercise: () => ExerciseType,
-}
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { exerciseActions } from "@/store/exercise/exercise-slice";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
     switchBgClass: (bgClass: BackgroundClassType) => void;
+    exerciseId: number;
     exerciseName: string;
-    trainingsDocs: DocumentData[];
-    ref: Ref<ExerciseRefType>;
 }
 
-const getLastTrainingWithExercise = (docs: DocumentData[], exerciseName: string) => {
-    for (const doc of docs) {
-        const data = doc.data();
-        const exercises = data.exercises || [];
+const emptyArray: SerieRowType[] = [];
+
+const getLastTrainingWithExercise = (trainings: { date: string, exercises: CleanExerciseType[] }[], exerciseName: string) => {
+    for (const training of trainings) {
+        const exercises = training.exercises || [];
 
         const hasExercise = exercises.some((exercise: any) => exercise.exerciseName === exerciseName);
 
         if (hasExercise) {
-            return data;
+            return training;
         }
     }
 
     return null
 }
 
-const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseName, trainingsDocs, ref }) => {
+const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseId, exerciseName }) => {
     const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
-    const [serieRows, setSerieRows] = useState<SerieRowType[]>([{ id: Date.now(), reps: '', weight: '', isDone: false }]);
+    const serieRows = useAppSelector(state => state.exercise.exercises[exerciseId].series) || emptyArray;
+    const lastTrainings = useAppSelector(state => state.training.lastTrainings);
     const [timerIsRunning, setTimerIsRunning] = useState(false);
-    const serieRef = useRef<{ getSerie: (toFinish?: boolean) => SerieRowType }[]>([]);
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         const getPreviousResults = () => {
-            const training = getLastTrainingWithExercise(trainingsDocs, exerciseName) as { date: string, exercises: CleanExerciseType[] } | null;
+            const training = getLastTrainingWithExercise(lastTrainings, exerciseName) as { date: string, exercises: CleanExerciseType[] } | null;
 
             if (training) {
                 const exercise = training.exercises.find(exercise => exercise.exerciseName === exerciseName);
@@ -49,50 +47,77 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
                 if (exercise) {
                     const previousSeries = exercise.series.map((serie) => serie);
 
-                    setLastResults(previousSeries);
-
-                    setSerieRows((currentSerieRows) =>
-                        currentSerieRows.map((row, index) => ({
-                            ...row,
-                            previousReps: previousSeries[index]?.reps || '',
-                            previousWeight: previousSeries[index]?.weight || '',
-                        }))
-                    );
+                    return previousSeries;
                 }
             }
+
+            return [];
         }
+        const previousResults = lastTrainings.length > 0 ? getPreviousResults() : [];
 
-        getPreviousResults();
-    }, []);
+        previousResults.length > 0 && setLastResults(previousResults);
 
-    useImperativeHandle(ref, () => ({
-        getExercise: () => getExercise()
-    }));
+        const initialSerieRows = serieRows.length > 0
+            ? serieRows.map((serie, index) => ({
+                ...serie,
+                previousReps: previousResults[index]?.reps || '',
+                previousWeight: previousResults[index]?.weight || '',
+            }))
+            : [{
+                id: Date.now(),
+                reps: '',
+                weight: '',
+                isDone: false,
+                previousReps: previousResults[0]?.reps || '',
+                previousWeight: previousResults[0]?.weight || '',
+                weightError: false,
+                repsError: false,
+                isDoneError: false,
+            }];
 
-    const getExercise = () => {
-        const exercise = serieRef.current.map((serie) => serie.getSerie(true));
-
-        return { exerciseName, series: exercise };
-    };
+        dispatch(exerciseActions.initSerieRows({ exerciseId, serieRows: initialSerieRows }));
+    }, [lastTrainings]);
 
     const handleAddSerieSelect = () => {
         const lastIndex = serieRows.length;
-        const serieData = serieRef.current[lastIndex - 1]?.getSerie();
-        const previousReps = serieData?.reps || '';
-        const previousWeight = serieData?.weight || '';
+        const serieData = serieRows[lastIndex - 1];
+        const previousReps = serieData.reps || '';
+        const previousWeight = serieData.weight || '';
         const lastSerieResult = lastResults && lastIndex >= 0 && lastIndex < lastResults.length
             ? lastResults[lastIndex]
             : null;
         if (previousReps && previousWeight || serieRows.length == 0) {
-            setSerieRows(prevSerie => [...prevSerie, { id: Date.now(), reps: previousReps, weight: previousWeight, isDone: false, previousReps: lastSerieResult?.reps, previousWeight: lastSerieResult?.weight }]);
+            dispatch(exerciseActions.addSerieRow({
+                exerciseId,
+                newSerie: {
+                    id: Date.now(),
+                    reps: previousReps,
+                    weight: previousWeight,
+                    isDone: false,
+                    previousReps: lastSerieResult?.reps || '',
+                    previousWeight: lastSerieResult?.weight || '',
+                    weightError: false,
+                    repsError: false,
+                    isDoneError: false,
+                }
+            }))
         } else {
+            dispatch(exerciseActions.updateSerieRow({
+                exerciseId,
+                index: lastIndex - 1,
+                serie: {
+                    ...serieData,
+                    repsError: true,
+                    weightError: true,
+                }
+            }))
             Vibration.vibrate();
             return;
         }
     };
 
-    const handleRemoveSerieSelect = (id: number) => {
-        setSerieRows(serieRows.filter(exercise => exercise.id !== id));
+    const handleRemoveSerieSelect = (serieId: number) => {
+        dispatch(exerciseActions.removeSerieRow({ exerciseId, serieId }));
     };
 
     const handleRestStart = () => {
@@ -131,12 +156,8 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
             </View>
             {serieRows.map((serie, index) => (
                 <SerieRow
-                    ref={el => {
-                        if (el) {
-                            serieRef.current[index] = el;
-                        }
-                    }}
                     key={serie.id}
+                    exerciseId={exerciseId}
                     serie={serie}
                     index={index}
                     onRemoveSerieSelect={handleRemoveSerieSelect}

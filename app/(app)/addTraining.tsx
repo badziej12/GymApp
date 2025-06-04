@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image, Alert, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
@@ -6,10 +6,10 @@ import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
 import Timer from "@/components/Timer/Timer";
-import { useAppSelector } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
-import { fetchLastTrainings } from "@/firebase/fetch-last-trainings";
-import { DocumentData } from "firebase/firestore";
+import { getLastTrainings } from "@/store/training/training-actions/get-last-trainings";
+import { exerciseActions } from "@/store/exercise/exercise-slice";
 
 export type SerieType = {
     reps: string,
@@ -23,6 +23,14 @@ export type SerieRowType = {
     isDone: boolean;
     previousReps?: string;
     previousWeight?: string;
+    weightError: boolean;
+    repsError: boolean;
+    isDoneError: boolean;
+}
+
+export type ExerciseSelectType = {
+    id: number;
+    exerciseName: string;
 }
 
 export type ExerciseType = {
@@ -42,12 +50,11 @@ const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday"
 export default function AddTraining() {
     const selectedDateString = useAppSelector(state => state.date.selectedDate);
     const user = useAppSelector(state => state.auth.user);
+    const exerciseSelects = useAppSelector(state => state.exercise.exercises);
     const [bgClass, setBgClass] = useState<BackgroundClassType>("bg-secondaryGreen");
-    const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [timerIsRunning, setTimerIsRunning] = useState(true);
-    const [lastTrainingsDocs, setLastTrainingDocs] = useState<DocumentData[]>([]);
-    const exerciseRefs = useRef<Record<number, { getExercise: () => ExerciseType }>>({});
+    const dispatch = useAppDispatch();
 
     const selectedDate = new Date(selectedDateString);
 
@@ -57,28 +64,25 @@ export default function AddTraining() {
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
 
     useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetchLastTrainings(user?.userId!);
-            setLastTrainingDocs(response);
-        }
-
-        fetchData();
-    }, []);
+        dispatch(getLastTrainings(user?.userId));
+    }, [dispatch, user]);
 
 
     const handleAddExerciseSelect = (exerciseNames: string[]) => {
         if (exerciseNames.length > 0) {
-            setExerciseSelects((prevExercises) => {
-                const newExercises = exerciseNames.map((exercise, index) => ({
-                    id: Date.now() + index,
-                    exerciseName: exercise,
-                }));
+            const newExercises = exerciseNames.map((exercise, index) => ({
+                id: Date.now() + index,
+                exerciseName: exercise,
+            }));
 
-                return [...prevExercises, ...newExercises];
-            });
+            dispatch(exerciseActions.appendExercises(newExercises));
         }
 
         setIsModalVisible(false);
+    };
+
+    const handleRemoveExerciseSelect = (id: number) => {
+        dispatch(exerciseActions.removeExercise(id));
     };
 
     const handleOpenModal = () => {
@@ -88,11 +92,6 @@ export default function AddTraining() {
     const handleCloseModal = () => {
         setIsModalVisible(false);
     }
-
-    const handleRemoveExerciseSelect = (id: number) => {
-        setExerciseSelects(prev => prev.filter(exercise => exercise.id !== id));
-        delete exerciseRefs.current[id];
-    };
 
     const handlePauseTimer = () => {
         setTimerIsRunning(wasRunning => {
@@ -112,28 +111,51 @@ export default function AddTraining() {
 
     const handleSaveTraining = async () => {
         try {
-            const exercises = Object.values(exerciseRefs.current).map(ref => ref.getExercise()) as ExerciseType[];
+            if (Object.values(exerciseSelects).length > 0) {
+                let anyErrors = false;
+                const exercises: Record<number, ExerciseType> = {};
+                Object.entries(exerciseSelects).forEach(([id, exercise]) => {
+                    const series = exercise.series.map((serie) => {
+                        const isDoneError = serie.isDone ? false : true;
+                        const repsError = serie.reps ? false : true;
+                        const weightError = serie.weight ? false : true;
 
-            exercises.forEach(exercise => {
-                exercise?.series.forEach((serie) => {
-                    if (!serie.isDone || !serie.reps || !serie.weight) {
-                        Vibration.vibrate();
-                        throw new Error("Nie uzupełniono wszystkich serii");
+
+                        if (isDoneError || repsError || weightError) {
+                            anyErrors = true;
+                        }
+                        return {
+                            ...serie,
+                            isDoneError,
+                            repsError,
+                            weightError,
+                        }
+                    })
+
+                    exercises[Number(id)] = {
+                        exerciseName: exercise.exerciseName,
+                        series,
                     }
                 })
-            })
 
-            const cleanedExercises = exercises.map((exercise) => {
-                const cleanedSeries = exercise.series.map(({ id, isDone, ...rest }) => rest)
-                return {
-                    exerciseName: exercise.exerciseName,
-                    series: cleanedSeries,
+                if (anyErrors) {
+                    dispatch(exerciseActions.replaceExercises(exercises))
+                    Vibration.vibrate();
+                    throw new Error("Uzupełnij wszystkie pola");
                 }
-            });
 
-            if (exercises.length > 0) {
-                await updateUserTraining(user!, cleanedExercises, selectedDate.toISOString());
+                const cleanedExercises = Object.values(exercises).map((exercise) => {
+                    const cleanedSeries = exercise.series.map(({ reps, weight, ...rest }) => ({ reps, weight }))
+                    return {
+                        exerciseName: exercise.exerciseName,
+                        series: cleanedSeries,
+                    }
+                });
+                console.log(cleanedExercises);
+
+                await updateUserTraining(user, cleanedExercises, selectedDate.toISOString());
                 router.dismiss(1);
+                Alert.alert("Trening zapisany");
             } else {
                 throw Error("Dodaj ćwiczenie");
             }
@@ -164,21 +186,12 @@ export default function AddTraining() {
                 </View>
                 <View className="pb-4 flex-grow">
                     <ScrollView className="h-1" showsVerticalScrollIndicator={false}>
-                        {exerciseSelects.map((exercise) =>
+                        {Object.entries(exerciseSelects).map(([id, exercise]) =>
                             <ExerciseDetails
-                                ref={el => {
-                                    if (el) {
-                                        exerciseRefs.current[exercise.id] = {
-                                            getExercise: el.getExercise,
-                                        };
-                                    } else {
-                                        delete exerciseRefs.current[exercise.id];
-                                    }
-                                }}
-                                key={exercise.id}
+                                key={id}
+                                exerciseId={Number(id)}
                                 exerciseName={exercise.exerciseName}
-                                trainingsDocs={lastTrainingsDocs}
-                                onRemove={() => handleRemoveExerciseSelect(exercise.id)}
+                                onRemove={() => handleRemoveExerciseSelect(Number(id))}
                                 switchBgClass={handleSwitchBgClass}
                             />
                         )}

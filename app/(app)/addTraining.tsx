@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image, Alert, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
-import Timer from "@/components/Timer/Timer";
+import Timer, { TimerRef } from "@/components/Timer/Timer";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
 import { getLastTrainings } from "@/store/training/training-actions/get-last-trainings";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
+import { trainingActions } from "@/store/training/training-slice";
 
 export type SerieType = {
     reps: string,
@@ -54,6 +55,7 @@ export default function AddTraining() {
     const [bgClass, setBgClass] = useState<BackgroundClassType>("bg-secondaryGreen");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [timerIsRunning, setTimerIsRunning] = useState(true);
+    const timerRef = useRef<TimerRef>(null);
     const dispatch = useAppDispatch();
 
     const selectedDate = new Date(selectedDateString);
@@ -64,9 +66,19 @@ export default function AddTraining() {
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
 
     useEffect(() => {
+        dispatch(trainingActions.setInProgress(true));
+    }, [dispatch]);
+
+    useEffect(() => {
         dispatch(getLastTrainings(user?.userId));
     }, [dispatch, user]);
 
+    const resetTraining = () => {
+        dispatch(trainingActions.setInProgress(false));
+        dispatch(trainingActions.resetTrainingTime());
+        dispatch(exerciseActions.cleanExercises());
+        timerRef.current?.resetTimer();
+    }
 
     const handleAddExerciseSelect = (exerciseNames: string[]) => {
         if (exerciseNames.length > 0) {
@@ -154,6 +166,7 @@ export default function AddTraining() {
                 console.log(cleanedExercises);
 
                 await updateUserTraining(user, cleanedExercises, selectedDate.toISOString());
+                resetTraining();
                 router.dismiss(1);
                 Alert.alert("Trening zapisany");
             } else {
@@ -178,7 +191,7 @@ export default function AddTraining() {
                 <View className="mb-4 flex-col">
                     <View className="flex-row justify-between mb-1">
                         <Text style={styles.title}>New Workout</Text>
-                        <Timer isRunning={timerIsRunning} mode="up" textProps={{ style: [styles.title, { opacity: timerIsRunning ? 1 : .4 }] }} />
+                        <Timer ref={timerRef} isRunning={timerIsRunning} mode="up" textProps={{ style: [styles.title, { opacity: timerIsRunning ? 1 : .4 }] }} />
                     </View>
                     <View>
                         <Text style={styles.subtitle}>{displayedDate}</Text>

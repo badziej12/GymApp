@@ -1,5 +1,5 @@
 import { View, Text, Pressable } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { collection, doc, getDocs } from 'firebase/firestore';
@@ -9,6 +9,7 @@ import { HeroComponent } from '@/components/home/HeroComponent';
 import { UserStats } from '@/components/UserStats';
 import { NotificationsMenu } from '@/components/home/NotificationsMenu';
 import { useAppSelector } from '@/store/store';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Home() {
   const router = useRouter();
@@ -18,6 +19,19 @@ export default function Home() {
   const user = useAppSelector(state => state.auth.user);
   // const selectedDateString = useAppSelector(state => state.date.selectedDate);
   const userData = useAppSelector(state => state.auth.user);
+
+  useEffect(() => {
+    const asyncTimers = async () => {
+      const timerRest = await AsyncStorage.getItem("rest_start_time");
+      const timerTraining = await AsyncStorage.getItem("training_start_time");
+      const asyncKeys = await AsyncStorage.getAllKeys();
+      console.log("Timer Rest:", timerRest);
+      console.log("Timer Training:", timerTraining);
+      console.log("Async Storage Keys:", asyncKeys);
+    }
+
+    asyncTimers();
+  })
 
   // const selectedDate = new Date(selectedDateString);
 

@@ -1,11 +1,14 @@
-import { BackgroundClassType, CleanExerciseType, SerieRowType, SerieType } from "@/app/(app)/addTraining";
+import { BackgroundClassType, BG_CLASS_KEY, CleanExerciseType, SerieRowType, SerieType } from "@/app/(app)/addTraining";
 import { FC, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Timer from "../../Timer/Timer";
+import Timer, { REST_IS_RUNNING_KEY } from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
+import { timerActions } from "@/store/timer/timer-slice";
+import { trainingActions } from "@/store/training/training-slice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
@@ -34,7 +37,7 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
     const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
     const serieRows = useAppSelector(state => state.exercise.exercises[exerciseId].series) || emptyArray;
     const lastTrainings = useAppSelector(state => state.training.lastTrainings);
-    const [timerIsRunning, setTimerIsRunning] = useState(false);
+    const restIsRunning = useAppSelector(state => state.timer.isRest);
     const dispatch = useAppDispatch();
 
     useEffect(() => {
@@ -120,15 +123,11 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
         dispatch(exerciseActions.removeSerieRow({ exerciseId, serieId }));
     };
 
-    const handleRestStart = () => {
-        switchBgClass("bg-azure");
-        setTimerIsRunning(true);
-    }
-
-    const handleRestFinish = () => {
-        setTimerIsRunning(false);
-        switchBgClass("bg-secondaryGreen");
-        Vibration.vibrate();
+    const handleRestStart = async () => {
+        await AsyncStorage.setItem(REST_IS_RUNNING_KEY, 'true');
+        await AsyncStorage.setItem(BG_CLASS_KEY, "bg-azure");
+        dispatch(trainingActions.setBgClass("bg-azure"));
+        dispatch(timerActions.setIsRest(true));
     }
 
     return (
@@ -170,7 +169,7 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
             </Pressable>
             <Pressable onPress={handleRestStart} style={styles.restButton} className="flex-row justify-between px-2 py-1">
                 <Text style={styles.restButtonCopy}>Rest</Text>
-                <Timer mode="down" isRunning={timerIsRunning} textProps={{ style: styles.restButtonCopy }} duration={10} onFinish={handleRestFinish} />
+                <Timer mode="down" isRunning={restIsRunning} textProps={{ style: styles.restButtonCopy }} duration={10} />
             </Pressable>
         </View>
     )

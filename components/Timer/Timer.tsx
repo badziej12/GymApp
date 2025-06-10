@@ -1,38 +1,53 @@
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { trainingActions } from "@/store/training/training-slice";
 import { FC, Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, Vibration, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const TRAINING_TIMER_START_KEY = "training_start_time";
+import { timerActions } from "@/store/timer/timer-slice";
+import { trainingActions } from "@/store/training/training-slice";
+import { BG_CLASS_KEY } from "@/app/(app)/addTraining";
 
 type TimerProps = {
     mode: "up" | "down";
     duration?: number; // tylko dla "down"
     isRunning: boolean;
-    onFinish?: () => void;
     textProps?: any;
-    ref: Ref<TimerRef>;
+    ref?: Ref<TimerRef>;
 };
 
 export type TimerRef = {
     resetTimer: () => void;
 }
 
-const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, onFinish, textProps, ref }) => {
+export const TIMER_IS_RUNNING_KEY = 'timer_is_running';
+export const TIMER_START_KEY = 'training_start_time';
+export const TIMER_REST_START_KEY = 'rest_start_time';
+export const REST_IS_RUNNING_KEY = 'rest_is_running';
+
+const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, textProps, ref }) => {
     const intervalRef = useRef<number | null>(null);
+    const [time, setTime] = useState(mode === "down" ? duration : 0);
     const dispatch = useAppDispatch();
-    const [time, setTime] = useState(0);
+
+    mode === "down" && console.log(time);
+
+    const TIMER_KEY = mode === 'down' ? TIMER_REST_START_KEY : TIMER_START_KEY;
 
     const startTimer = async () => {
         const now = Date.now().toString();
-        await AsyncStorage.setItem(TRAINING_TIMER_START_KEY, now);
+        await AsyncStorage.setItem(TIMER_KEY, now);
+        await AsyncStorage.setItem(TIMER_IS_RUNNING_KEY, 'true');
     };
 
     const resetTimer = async () => {
-        intervalRef.current && clearInterval(intervalRef.current);
-        await AsyncStorage.removeItem(TRAINING_TIMER_START_KEY);
-        dispatch(trainingActions.setTrainingTime(0));
+        await AsyncStorage.removeItem(TIMER_KEY);
+        if (mode === 'down') {
+            setTime(duration);
+            await AsyncStorage.removeItem(REST_IS_RUNNING_KEY);
+            await AsyncStorage.setItem(BG_CLASS_KEY, "bg-secondaryGreen")
+            dispatch(timerActions.setIsRest(false));
+            dispatch(trainingActions.setBgClass("bg-secondaryGreen"));
+            Vibration.vibrate();
+        }
     };
 
     useImperativeHandle(ref, () => ({
@@ -41,7 +56,7 @@ const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, onFinish, textPr
 
     useEffect(() => {
         const loadTimer = async () => {
-            const storedStart = await AsyncStorage.getItem(TRAINING_TIMER_START_KEY);
+            const storedStart = await AsyncStorage.getItem(TIMER_KEY);
             if (storedStart) {
                 const startTime = parseInt(storedStart, 10);
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -61,26 +76,25 @@ const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, onFinish, textPr
         }
 
         const run = async () => {
-            const storedStart = await AsyncStorage.getItem(TRAINING_TIMER_START_KEY);
+            const storedStart = await AsyncStorage.getItem(TIMER_KEY);
             let startTime = storedStart ? parseInt(storedStart, 10) : null;
 
             if (!startTime) {
                 startTime = Date.now();
-                await AsyncStorage.setItem(TRAINING_TIMER_START_KEY, startTime.toString());
+                await AsyncStorage.setItem(TIMER_KEY, startTime.toString());
             }
 
             intervalRef.current = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - startTime!) / 1000);
 
                 setTime(elapsed);
-                dispatch(trainingActions.setTrainingTime(elapsed)); // możesz mieć własną akcję
 
                 if (mode === "down") {
                     const remaining = duration - elapsed;
                     if (remaining <= 0) {
                         clearInterval(intervalRef.current!);
+                        intervalRef.current = null;
                         resetTimer();
-                        onFinish?.();
                     }
                 }
             }, 1000);
@@ -99,7 +113,10 @@ const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, onFinish, textPr
         return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     };
 
-    const displayTime = mode === "up" ? time : Math.max(duration - time, 0);
+    let displayTime = time;
+    if (mode === "down") {
+        displayTime = intervalRef.current ? Math.max(duration - time, 0) : time;
+    }
 
     return (
         <View>

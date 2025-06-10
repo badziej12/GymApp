@@ -5,12 +5,14 @@ import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
-import Timer, { TimerRef } from "@/components/Timer/Timer";
+import Timer, { TIMER_IS_RUNNING_KEY, TimerRef } from "@/components/Timer/Timer";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
 import { getLastTrainings } from "@/store/training/training-actions/get-last-trainings";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
 import { trainingActions } from "@/store/training/training-slice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { timerActions } from "@/store/timer/timer-slice";
 
 export type SerieType = {
     reps: string,
@@ -48,13 +50,16 @@ export type BackgroundClassType = "bg-secondaryGreen" | "bg-secondaryBrown" | "b
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday", "Saturday"];
 
+export const BG_CLASS_KEY = 'bg_class';
+export const TRAINING_IN_PROGRESS_KEY = 'training_in_progress';
+
 export default function AddTraining() {
     const selectedDateString = useAppSelector(state => state.date.selectedDate);
     const user = useAppSelector(state => state.auth.user);
     const exerciseSelects = useAppSelector(state => state.exercise.exercises);
-    const [bgClass, setBgClass] = useState<BackgroundClassType>("bg-secondaryGreen");
+    const bgClass = useAppSelector(state => state.training.bgClass);
+    const timerIsRunning = useAppSelector(state => state.timer.isRunning);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [timerIsRunning, setTimerIsRunning] = useState(true);
     const timerRef = useRef<TimerRef>(null);
     const dispatch = useAppDispatch();
 
@@ -66,7 +71,12 @@ export default function AddTraining() {
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
 
     useEffect(() => {
-        dispatch(trainingActions.setInProgress(true));
+        const setTrainingInProgress = async () => {
+            await AsyncStorage.setItem(TRAINING_IN_PROGRESS_KEY, 'true');
+            dispatch(trainingActions.setInProgress(true));
+        }
+
+        setTrainingInProgress();
     }, [dispatch]);
 
     useEffect(() => {
@@ -105,20 +115,24 @@ export default function AddTraining() {
         setIsModalVisible(false);
     }
 
-    const handlePauseTimer = () => {
-        setTimerIsRunning(wasRunning => {
-            if (!wasRunning) {
-                setBgClass("bg-secondaryGreen");
-            } else {
-                setBgClass("bg-secondaryBrown");
-            }
+    const handlePauseTimer = async () => {
+        const timerIsRunning = await AsyncStorage.getItem(TIMER_IS_RUNNING_KEY);
 
-            return !wasRunning;
-        });
+        if (timerIsRunning === 'true') {
+            await AsyncStorage.setItem(TIMER_IS_RUNNING_KEY, 'false');
+            await AsyncStorage.setItem(BG_CLASS_KEY, "bg-secondaryBrown");
+            dispatch(trainingActions.setBgClass("bg-secondaryBrown"));
+            dispatch(timerActions.setIsRunning(false));
+        } else {
+            await AsyncStorage.setItem(TIMER_IS_RUNNING_KEY, 'true');
+            await AsyncStorage.setItem(BG_CLASS_KEY, "bg-secondaryGreen");
+            dispatch(trainingActions.setBgClass("bg-secondaryGreen"));
+            dispatch(timerActions.setIsRunning(true));
+        }
     }
 
     const handleSwitchBgClass = (bgClass: BackgroundClassType) => {
-        setBgClass(bgClass);
+        dispatch(trainingActions.setBgClass(bgClass));
     }
 
     const handleSaveTraining = async () => {

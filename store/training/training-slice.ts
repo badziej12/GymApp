@@ -1,14 +1,16 @@
-import { CleanExerciseType, ExerciseSelectType } from "@/app/(app)/addTraining";
+import { BackgroundClassType, CleanExerciseType, ExerciseSelectType } from "@/app/(app)/addTraining";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type TrainingSliceState = {
-    inProgress: boolean
+    inProgress: boolean;
+    bgClass: BackgroundClassType;
     lastTrainings: { date: string, exercises: CleanExerciseType[] }[];
     trainingTime: number;
 }
 
 const initialState: TrainingSliceState = {
     inProgress: false,
+    bgClass: 'bg-secondaryGreen',
     lastTrainings: [],
     trainingTime: 0,
 };
@@ -31,6 +33,9 @@ const trainingSlice = createSlice({
         },
         resetTrainingTime(state) {
             state.trainingTime = 0;
+        },
+        setBgClass(state, action: PayloadAction<BackgroundClassType>) {
+            state.bgClass = action.payload;
         }
     }
 });

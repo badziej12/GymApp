@@ -20,19 +20,6 @@ export default function Home() {
   // const selectedDateString = useAppSelector(state => state.date.selectedDate);
   const userData = useAppSelector(state => state.auth.user);
 
-  useEffect(() => {
-    const asyncTimers = async () => {
-      const timerRest = await AsyncStorage.getItem("rest_start_time");
-      const timerTraining = await AsyncStorage.getItem("training_start_time");
-      const asyncKeys = await AsyncStorage.getAllKeys();
-      console.log("Timer Rest:", timerRest);
-      console.log("Timer Training:", timerTraining);
-      console.log("Async Storage Keys:", asyncKeys);
-    }
-
-    asyncTimers();
-  })
-
   // const selectedDate = new Date(selectedDateString);
 
   // const fetchUserTrainings = async () => {

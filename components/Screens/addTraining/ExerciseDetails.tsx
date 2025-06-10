@@ -9,11 +9,10 @@ import { timerActions } from "@/store/timer/timer-slice";
 import { trainingActions } from "@/store/training/training-slice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BackgroundClassType, CleanExerciseType, SerieRowType, SerieType } from "@/types";
-import { BG_CLASS_KEY, REST_IS_RUNNING_KEY } from "@/async-storage/keys";
+import { BG_CLASS_KEY, REST_IS_RUNNING_KEY, TRAINING_EXERCISES_KEY } from "@/async-storage/keys";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
-    switchBgClass: (bgClass: BackgroundClassType) => void;
     exerciseId: number;
     exerciseName: string;
 }
@@ -34,12 +33,14 @@ const getLastTrainingWithExercise = (trainings: { date: string, exercises: Clean
     return null
 }
 
-const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, exerciseId, exerciseName }) => {
+const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exerciseName }) => {
     const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
-    const serieRows = useAppSelector(state => state.exercise.exercises[exerciseId].series) || emptyArray;
+    const trainingExercises = useAppSelector(state => state.exercise.exercises);
     const lastTrainings = useAppSelector(state => state.training.lastTrainings);
     const restIsRunning = useAppSelector(state => state.timer.isRest);
     const dispatch = useAppDispatch();
+
+    const serieRows = trainingExercises[exerciseId].series || emptyArray;
 
     useEffect(() => {
         const getPreviousResults = () => {
@@ -82,7 +83,7 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, switchBgClass, e
         dispatch(exerciseActions.initSerieRows({ exerciseId, serieRows: initialSerieRows }));
     }, [lastTrainings]);
 
-    const handleAddSerieSelect = () => {
+    const handleAddSerieSelect = async () => {
         const lastIndex = serieRows.length;
         const serieData = serieRows[lastIndex - 1];
         const previousReps = serieData.reps || '';

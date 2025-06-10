@@ -13,8 +13,9 @@ import { exerciseActions } from "@/store/exercise/exercise-slice";
 import { trainingActions } from "@/store/training/training-slice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { timerActions } from "@/store/timer/timer-slice";
-import { BackgroundClassType, ExerciseType } from "@/types";
-import { BG_CLASS_KEY, TIMER_IS_RUNNING_KEY, TRAINING_IN_PROGRESS_KEY } from "@/async-storage/keys";
+import { ExerciseType } from "@/types";
+import { BG_CLASS_KEY, TIMER_IS_RUNNING_KEY, TRAINING_EXERCISES_KEY, TRAINING_IN_PROGRESS_KEY } from "@/async-storage/keys";
+import { clearAsyncStorageFromTraining } from "@/async-storage/utils";
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday", "Saturday"];
 
@@ -45,14 +46,23 @@ export default function AddTraining() {
     }, [dispatch]);
 
     useEffect(() => {
+        const updateAsyncExercises = async () => {
+            await AsyncStorage.setItem(TRAINING_EXERCISES_KEY, JSON.stringify(exerciseSelects));
+        }
+
+        Object.keys(exerciseSelects).length > 0 && updateAsyncExercises();
+    }, [exerciseSelects]);
+
+    useEffect(() => {
         dispatch(getLastTrainings(user?.userId));
     }, [dispatch, user]);
 
-    const resetTraining = () => {
+    const resetTraining = async () => {
         dispatch(trainingActions.setInProgress(false));
         dispatch(trainingActions.resetTrainingTime());
         dispatch(exerciseActions.cleanExercises());
         timerRef.current?.resetTimer();
+        await clearAsyncStorageFromTraining();
     }
 
     const handleAddExerciseSelect = (exerciseNames: string[]) => {
@@ -94,10 +104,6 @@ export default function AddTraining() {
             dispatch(trainingActions.setBgClass("bg-secondaryGreen"));
             dispatch(timerActions.setIsRunning(true));
         }
-    }
-
-    const handleSwitchBgClass = (bgClass: BackgroundClassType) => {
-        dispatch(trainingActions.setBgClass(bgClass));
     }
 
     const handleSaveTraining = async () => {
@@ -145,7 +151,7 @@ export default function AddTraining() {
                 console.log(cleanedExercises);
 
                 await updateUserTraining(user, cleanedExercises, selectedDate.toISOString());
-                resetTraining();
+                await resetTraining();
                 router.dismiss(1);
                 Alert.alert("Trening zapisany");
             } else {
@@ -184,7 +190,6 @@ export default function AddTraining() {
                                 exerciseId={Number(id)}
                                 exerciseName={exercise.exerciseName}
                                 onRemove={() => handleRemoveExerciseSelect(Number(id))}
-                                switchBgClass={handleSwitchBgClass}
                             />
                         )}
                         <ButtonComponent onPress={handleOpenModal} title="Add exercise" variant="dashed" />

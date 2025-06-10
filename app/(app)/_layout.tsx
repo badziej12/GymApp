@@ -8,9 +8,9 @@ import { useAppDispatch, useAppSelector } from "@/store/store";
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trainingActions } from "@/store/training/training-slice";
-import { BackgroundClassType, BG_CLASS_KEY, TRAINING_IN_PROGRESS_KEY } from "./addTraining";
-import { REST_IS_RUNNING_KEY, TIMER_IS_RUNNING_KEY } from "@/components/Timer/Timer";
 import { timerActions } from "@/store/timer/timer-slice";
+import { BackgroundClassType } from "@/types";
+import { BG_CLASS_KEY, REST_IS_RUNNING_KEY, TIMER_IS_RUNNING_KEY, TRAINING_IN_PROGRESS_KEY } from "@/async-storage/keys";
 
 export default function _layout() {
   const user = useAppSelector(state => state.auth.user);

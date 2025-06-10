@@ -1,7 +1,5 @@
+import { AvailableExerciseType, ExerciseType, SerieRowType } from '@/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ExerciseType, SerieRowType } from '@/app/(app)/addTraining';
-import { AvailableExerciseType } from '@/components/Screens/addTraining/ExerciseModal';
-
 
 type ExerciseState = {
     exercises: Record<number, ExerciseType>;

@@ -1,5 +1,5 @@
 import { FC, useEffect, useState } from "react";
-import { Modal, View, Text, Pressable, StyleSheet, ScrollView } from "react-native"
+import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import SearchComponent from "./SearchComponent";
@@ -8,14 +8,10 @@ import { trainingsRef } from "@/firebaseConfig";
 import { getDocs } from "firebase/firestore";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
+import { AvailableExerciseType } from "@/types";
 
 type ExerciseModalProps = {
     onAddExercise: (exerciseName: string[]) => void,
-}
-
-export type AvailableExerciseType = {
-    name: string;
-    category: string[];
 }
 
 const ExerciseModal: FC<ExerciseModalProps> = ({ onAddExercise }) => {

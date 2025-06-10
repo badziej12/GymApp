@@ -1,10 +1,10 @@
-import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useAppDispatch } from "@/store/store";
 import { FC, Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Text, Vibration, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { timerActions } from "@/store/timer/timer-slice";
 import { trainingActions } from "@/store/training/training-slice";
-import { BG_CLASS_KEY } from "@/app/(app)/addTraining";
+import { BG_CLASS_KEY, REST_IS_RUNNING_KEY, TIMER_IS_RUNNING_KEY, TIMER_REST_START_KEY, TIMER_START_KEY } from "@/async-storage/keys";
 
 type TimerProps = {
     mode: "up" | "down";
@@ -17,11 +17,6 @@ type TimerProps = {
 export type TimerRef = {
     resetTimer: () => void;
 }
-
-export const TIMER_IS_RUNNING_KEY = 'timer_is_running';
-export const TIMER_START_KEY = 'training_start_time';
-export const TIMER_REST_START_KEY = 'rest_start_time';
-export const REST_IS_RUNNING_KEY = 'rest_is_running';
 
 const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, textProps, ref }) => {
     const intervalRef = useRef<number | null>(null);

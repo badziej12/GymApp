@@ -2,7 +2,7 @@
 import { fetchLastTrainings } from "@/firebase/fetch-last-trainings";
 import { AppDispach } from "@/store/store";
 import { trainingActions } from "../training-slice";
-import { CleanExerciseType } from "@/app/(app)/addTraining";
+import { CleanExerciseType } from "@/types";
 
 export const getLastTrainings = (userId: string | undefined, limitNumber: number = 10) => {
     return async (dispatch: AppDispach) => {

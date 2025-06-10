@@ -23,8 +23,6 @@ const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, textProps, ref }
     const [time, setTime] = useState(mode === "down" ? duration : 0);
     const dispatch = useAppDispatch();
 
-    mode === "down" && console.log(time);
-
     const TIMER_KEY = mode === 'down' ? TIMER_REST_START_KEY : TIMER_START_KEY;
 
     const startTimer = async () => {

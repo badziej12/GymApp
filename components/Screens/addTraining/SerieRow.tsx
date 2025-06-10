@@ -2,9 +2,9 @@ import { FC } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import SwipeableItem from 'react-native-swipeable-item';
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
-import { SerieRowType } from "@/app/(app)/addTraining";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
+import { SerieRowType } from "@/types";
 
 type SerieRowProps = {
     onRemoveSerieSelect: (id: number) => void;

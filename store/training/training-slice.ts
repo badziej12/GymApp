@@ -1,4 +1,4 @@
-import { BackgroundClassType, CleanExerciseType, ExerciseSelectType } from "@/app/(app)/addTraining";
+import { BackgroundClassType, CleanExerciseType } from "@/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type TrainingSliceState = {

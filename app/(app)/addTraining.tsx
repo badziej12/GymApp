@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
-import Timer, { TIMER_IS_RUNNING_KEY, TimerRef } from "@/components/Timer/Timer";
+import Timer, { TimerRef } from "@/components/Timer/Timer";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
 import { getLastTrainings } from "@/store/training/training-actions/get-last-trainings";
@@ -13,45 +13,10 @@ import { exerciseActions } from "@/store/exercise/exercise-slice";
 import { trainingActions } from "@/store/training/training-slice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { timerActions } from "@/store/timer/timer-slice";
-
-export type SerieType = {
-    reps: string,
-    weight: string,
-}
-
-export type SerieRowType = {
-    id: number;
-    reps: string;
-    weight: string;
-    isDone: boolean;
-    previousReps?: string;
-    previousWeight?: string;
-    weightError: boolean;
-    repsError: boolean;
-    isDoneError: boolean;
-}
-
-export type ExerciseSelectType = {
-    id: number;
-    exerciseName: string;
-}
-
-export type ExerciseType = {
-    exerciseName: string,
-    series: SerieRowType[],
-}
-
-export type CleanExerciseType = {
-    exerciseName: string,
-    series: SerieType[],
-}
-
-export type BackgroundClassType = "bg-secondaryGreen" | "bg-secondaryBrown" | "bg-azure";
+import { BackgroundClassType, ExerciseType } from "@/types";
+import { BG_CLASS_KEY, TIMER_IS_RUNNING_KEY, TRAINING_IN_PROGRESS_KEY } from "@/async-storage/keys";
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday", "Saturday"];
-
-export const BG_CLASS_KEY = 'bg_class';
-export const TRAINING_IN_PROGRESS_KEY = 'training_in_progress';
 
 export default function AddTraining() {
     const selectedDateString = useAppSelector(state => state.date.selectedDate);

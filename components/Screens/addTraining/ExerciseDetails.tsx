@@ -1,14 +1,15 @@
-import { BackgroundClassType, BG_CLASS_KEY, CleanExerciseType, SerieRowType, SerieType } from "@/app/(app)/addTraining";
 import { FC, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Timer, { REST_IS_RUNNING_KEY } from "../../Timer/Timer";
+import Timer from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
 import { timerActions } from "@/store/timer/timer-slice";
 import { trainingActions } from "@/store/training/training-slice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BackgroundClassType, CleanExerciseType, SerieRowType, SerieType } from "@/types";
+import { BG_CLASS_KEY, REST_IS_RUNNING_KEY } from "@/async-storage/keys";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;

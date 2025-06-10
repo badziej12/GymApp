@@ -1,6 +1,6 @@
-import { CleanExerciseType } from "@/app/(app)/addTraining";
 import { usersRef } from "@/firebaseConfig";
 import { ExtendedUser } from "@/store/auth/auth-slice";
+import { CleanExerciseType } from "@/types";
 import { addDoc, collection, doc } from "firebase/firestore";
 import { Alert } from "react-native";
 

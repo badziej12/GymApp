@@ -1,100 +1,44 @@
-import { FC, Ref, useImperativeHandle, useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, Vibration } from "react-native";
+import { FC } from "react";
+import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import SwipeableItem from 'react-native-swipeable-item';
 import Animated, { FadeInRight, FadeOutLeft } from "react-native-reanimated";
 import { SerieRowType } from "@/app/(app)/addTraining";
-
-type SerieRowRefType = {
-    getSerie: (toFinish?: boolean) => SerieRowType;
-}
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { exerciseActions } from "@/store/exercise/exercise-slice";
 
 type SerieRowProps = {
     onRemoveSerieSelect: (id: number) => void;
     serie: SerieRowType;
+    exerciseId: number;
     index: number;
-    ref: Ref<SerieRowRefType>;
 }
 
-const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, serie, index, ref }) => {
-    const [isDone, setIsDone] = useState(false);
-    const [isEmpty, setIsEmpty] = useState({ reps: false, weight: false, isDone: false });
-    const [weightValue, setWeightValue] = useState(serie.weight);
-    const [repsValue, setRepsValue] = useState(serie.reps);
+const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, exerciseId, index }) => {
+    const serie = useAppSelector(state => state.exercise.exercises[exerciseId].series[index]);
+    const dispatch = useAppDispatch();
 
     const handleDonePress = () => {
-        setIsDone(prev => {
-            !prev && Vibration.vibrate();
-            return !prev;
-        });
-
-        if (isEmpty.isDone) {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    isDone: false,
-                }
-            })
-        }
+        dispatch(exerciseActions.updateSerieRow({
+            exerciseId,
+            index,
+            serie: {
+                ...serie,
+                isDone: !serie.isDone,
+                isDoneError: false,
+            }
+        }))
     }
 
-    const handleChangeText = (stateName: "reps" | "weight") => {
-        if (isEmpty[stateName]) {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    [stateName]: false,
-                }
-            })
-        }
-    }
-
-    useImperativeHandle(ref, () => ({
-        getSerie: (toFinish?: boolean) => getSerie(toFinish)
-    }));
-
-    const getSerie = (toFinish = false) => {
-        if (!repsValue) {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    reps: true
-                }
-            });
-        } else {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    reps: false
-                }
-            });
-        }
-
-        if (!weightValue) {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    weight: true
-                }
-            });
-        } else {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    weight: false
-                }
-            });
-        }
-
-        if (toFinish && !isDone) {
-            setIsEmpty(prev => {
-                return {
-                    ...prev,
-                    isDone: true,
-                }
-            })
-        }
-
-        return { id: serie.id, reps: repsValue, weight: weightValue, isDone };
+    const handleChangeText = (stateName: "reps" | "weight", value: string) => {
+        dispatch(exerciseActions.updateSerieRow({
+            exerciseId,
+            index,
+            serie: {
+                ...serie,
+                [stateName + "Error"]: false,
+                [stateName]: value,
+            }
+        }))
     }
 
     let previousResult;
@@ -134,31 +78,29 @@ const SerieRow: FC<SerieRowProps> = ({ onRemoveSerieSelect, serie, index, ref })
                         </View>
                         <View className="w-2/12">
                             <TextInput
-                                style={[styles.inputBox, { backgroundColor: isEmpty.weight ? "red" : "#00000080" }]}
+                                style={[styles.inputBox, { backgroundColor: serie.weightError ? "red" : "#00000080" }]}
                                 inputMode={"numeric"}
                                 className="flex-1 px-4 text-center"
                                 onChangeText={(val) => {
-                                    setWeightValue(val);
-                                    handleChangeText("weight");
+                                    handleChangeText("weight", val);
                                 }}
-                                value={weightValue}
+                                value={serie.weight}
                             />
                         </View>
                         <View className="w-2/12">
                             <TextInput
-                                style={[styles.inputBox, , { backgroundColor: isEmpty.reps ? "red" : "#00000080" }]}
+                                style={[styles.inputBox, , { backgroundColor: serie.repsError ? "red" : "#00000080" }]}
                                 inputMode={"numeric"}
                                 className="flex-1 text-center"
                                 placeholderTextColor={"black"}
                                 onChangeText={(val) => {
-                                    setRepsValue(val);
-                                    handleChangeText("reps");
+                                    handleChangeText("reps", val);
                                 }}
-                                value={repsValue}
+                                value={serie.reps}
                             />
                         </View>
                         <View className="w-1/12">
-                            <Pressable onPress={handleDonePress} className="h-full" style={[styles.inputBox, { backgroundColor: isDone ? "#FFF" : "#00000080", borderColor: isEmpty.isDone ? "red" : "#000000CC" }]} />
+                            <Pressable onPress={handleDonePress} className="h-full" style={[styles.inputBox, { backgroundColor: serie.isDone ? "#FFF" : "#00000080", borderColor: serie.isDoneError ? "red" : "#000000CC" }]} />
                         </View>
                     </View>
                 </Animated.View>

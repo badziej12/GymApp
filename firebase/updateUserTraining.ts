@@ -4,8 +4,11 @@ import { ExtendedUser } from "@/store/auth/auth-slice";
 import { addDoc, collection, doc } from "firebase/firestore";
 import { Alert } from "react-native";
 
-export const updateUserTraining = async (user: ExtendedUser, fullTraining: CleanExerciseType[], selectedDate: string) => {
-    const userRef = doc(usersRef, user?.userId);
+export const updateUserTraining = async (user: ExtendedUser | null, fullTraining: CleanExerciseType[], selectedDate: string) => {
+    if (!user) {
+        throw new Error("User is not defined");
+    }
+    const userRef = doc(usersRef, user.userId);
     const userTrainingsRef = collection(userRef, "trainings");
 
     try {

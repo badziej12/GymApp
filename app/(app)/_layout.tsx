@@ -4,10 +4,34 @@ import { Stack } from "expo-router";
 import "../../global.css"
 import { GroupsProvider } from "@/context/groupsContext";
 import { HomeHeader } from "@/components/navigation/HomeHeader";
-import { useAppSelector } from "@/store/store";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { trainingActions } from "@/store/training/training-slice";
+import { BackgroundClassType, BG_CLASS_KEY, TRAINING_IN_PROGRESS_KEY } from "./addTraining";
+import { REST_IS_RUNNING_KEY, TIMER_IS_RUNNING_KEY } from "@/components/Timer/Timer";
+import { timerActions } from "@/store/timer/timer-slice";
 
 export default function _layout() {
   const user = useAppSelector(state => state.auth.user);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const loadTrainingAsyncStorage = async () => {
+      const trainingInProgress = await AsyncStorage.getItem(TRAINING_IN_PROGRESS_KEY);
+      if (trainingInProgress === "true") {
+        dispatch(trainingActions.setInProgress(true));
+        const bgClass = await AsyncStorage.getItem(BG_CLASS_KEY) as BackgroundClassType;
+        const timerIsRunning = await AsyncStorage.getItem(TIMER_IS_RUNNING_KEY);
+        const restIsRunning = await AsyncStorage.getItem(REST_IS_RUNNING_KEY);
+        bgClass && dispatch(trainingActions.setBgClass(bgClass));
+        timerIsRunning === "true" && dispatch(timerActions.setIsRunning(true));
+        restIsRunning === "true" && dispatch(timerActions.setIsRest(true));
+      }
+    }
+
+    loadTrainingAsyncStorage();
+  }, [dispatch])
 
   return (
     <GroupsProvider>

@@ -1,39 +1,106 @@
-import { useEffect, useRef, useState } from "react";
-import { Text, View, Pressable, TextProps } from "react-native";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { FC, Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { Text, Vibration, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { timerActions } from "@/store/timer/timer-slice";
+import { trainingActions } from "@/store/training/training-slice";
+import { BG_CLASS_KEY } from "@/app/(app)/addTraining";
 
 type TimerProps = {
     mode: "up" | "down";
     duration?: number; // tylko dla "down"
     isRunning: boolean;
-    onFinish?: () => void;
-    textProps?: TextProps;
+    textProps?: any;
+    ref?: Ref<TimerRef>;
 };
 
-const Timer = ({ mode, duration = 0, isRunning, onFinish, textProps }: TimerProps) => {
-    const [time, setTime] = useState(mode === "down" ? duration : 0);
+export type TimerRef = {
+    resetTimer: () => void;
+}
+
+export const TIMER_IS_RUNNING_KEY = 'timer_is_running';
+export const TIMER_START_KEY = 'training_start_time';
+export const TIMER_REST_START_KEY = 'rest_start_time';
+export const REST_IS_RUNNING_KEY = 'rest_is_running';
+
+const Timer: FC<TimerProps> = ({ mode, duration = 0, isRunning, textProps, ref }) => {
     const intervalRef = useRef<number | null>(null);
+    const [time, setTime] = useState(mode === "down" ? duration : 0);
+    const dispatch = useAppDispatch();
+
+    mode === "down" && console.log(time);
+
+    const TIMER_KEY = mode === 'down' ? TIMER_REST_START_KEY : TIMER_START_KEY;
+
+    const startTimer = async () => {
+        const now = Date.now().toString();
+        await AsyncStorage.setItem(TIMER_KEY, now);
+        await AsyncStorage.setItem(TIMER_IS_RUNNING_KEY, 'true');
+    };
+
+    const resetTimer = async () => {
+        await AsyncStorage.removeItem(TIMER_KEY);
+        if (mode === 'down') {
+            setTime(duration);
+            await AsyncStorage.removeItem(REST_IS_RUNNING_KEY);
+            await AsyncStorage.setItem(BG_CLASS_KEY, "bg-secondaryGreen")
+            dispatch(timerActions.setIsRest(false));
+            dispatch(trainingActions.setBgClass("bg-secondaryGreen"));
+            Vibration.vibrate();
+        }
+    };
+
+    useImperativeHandle(ref, () => ({
+        resetTimer,
+    }));
 
     useEffect(() => {
-        if (!isRunning) return;
+        const loadTimer = async () => {
+            const storedStart = await AsyncStorage.getItem(TIMER_KEY);
+            if (storedStart) {
+                const startTime = parseInt(storedStart, 10);
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                setTime(elapsed);
+            } else {
+                if (isRunning) await startTimer();
+            }
+        };
 
-        if (isRunning) {
-            intervalRef.current = setInterval(() => {
-                setTime(prevTime => {
-                    if (mode === "up") {
-                        return prevTime + 1;
-                    } else {
-                        if (prevTime <= 1) {
-                            clearInterval(intervalRef.current!);
-                            onFinish?.();
-                            return duration;
-                        }
-                        return prevTime - 1;
-                    }
-                });
-            }, 1000);
-        } else if (intervalRef.current) {
-            clearInterval(intervalRef.current);
+        loadTimer();
+    }, []);
+
+    useEffect(() => {
+        if (!isRunning) {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            return;
         }
+
+        const run = async () => {
+            const storedStart = await AsyncStorage.getItem(TIMER_KEY);
+            let startTime = storedStart ? parseInt(storedStart, 10) : null;
+
+            if (!startTime) {
+                startTime = Date.now();
+                await AsyncStorage.setItem(TIMER_KEY, startTime.toString());
+            }
+
+            intervalRef.current = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime!) / 1000);
+
+                setTime(elapsed);
+
+                if (mode === "down") {
+                    const remaining = duration - elapsed;
+                    if (remaining <= 0) {
+                        clearInterval(intervalRef.current!);
+                        intervalRef.current = null;
+                        resetTimer();
+                    }
+                }
+            }, 1000);
+        };
+
+        run();
 
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
@@ -46,9 +113,14 @@ const Timer = ({ mode, duration = 0, isRunning, onFinish, textProps }: TimerProp
         return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     };
 
+    let displayTime = time;
+    if (mode === "down") {
+        displayTime = intervalRef.current ? Math.max(duration - time, 0) : time;
+    }
+
     return (
         <View>
-            <Text {...textProps}>{formatTime(time)}</Text>
+            <Text {...textProps}>{formatTime(displayTime)}</Text>
         </View>
     );
 };

@@ -5,11 +5,14 @@ import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
 import ExerciseModal from "@/components/Screens/addTraining/ExerciseModal";
 import ExerciseDetails from "@/components/Screens/addTraining/ExerciseDetails";
-import Timer from "@/components/Timer/Timer";
-import { useAppSelector } from "@/store/store";
+import Timer, { TIMER_IS_RUNNING_KEY, TimerRef } from "@/components/Timer/Timer";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import { updateUserTraining } from "@/firebase/updateUserTraining";
-import { fetchLastTrainings } from "@/firebase/fetch-last-trainings";
-import { DocumentData } from "firebase/firestore";
+import { getLastTrainings } from "@/store/training/training-actions/get-last-trainings";
+import { exerciseActions } from "@/store/exercise/exercise-slice";
+import { trainingActions } from "@/store/training/training-slice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { timerActions } from "@/store/timer/timer-slice";
 
 export type SerieType = {
     reps: string,
@@ -23,6 +26,14 @@ export type SerieRowType = {
     isDone: boolean;
     previousReps?: string;
     previousWeight?: string;
+    weightError: boolean;
+    repsError: boolean;
+    isDoneError: boolean;
+}
+
+export type ExerciseSelectType = {
+    id: number;
+    exerciseName: string;
 }
 
 export type ExerciseType = {
@@ -39,15 +50,18 @@ export type BackgroundClassType = "bg-secondaryGreen" | "bg-secondaryBrown" | "b
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Thursday", "Wensday", "Friday", "Saturday"];
 
+export const BG_CLASS_KEY = 'bg_class';
+export const TRAINING_IN_PROGRESS_KEY = 'training_in_progress';
+
 export default function AddTraining() {
     const selectedDateString = useAppSelector(state => state.date.selectedDate);
     const user = useAppSelector(state => state.auth.user);
-    const [bgClass, setBgClass] = useState<BackgroundClassType>("bg-secondaryGreen");
-    const [exerciseSelects, setExerciseSelects] = useState<{ id: number, exerciseName: string }[]>([]);
+    const exerciseSelects = useAppSelector(state => state.exercise.exercises);
+    const bgClass = useAppSelector(state => state.training.bgClass);
+    const timerIsRunning = useAppSelector(state => state.timer.isRunning);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [timerIsRunning, setTimerIsRunning] = useState(true);
-    const [lastTrainingsDocs, setLastTrainingDocs] = useState<DocumentData[]>([]);
-    const exerciseRefs = useRef<Record<number, { getExercise: () => ExerciseType }>>({});
+    const timerRef = useRef<TimerRef>(null);
+    const dispatch = useAppDispatch();
 
     const selectedDate = new Date(selectedDateString);
 
@@ -57,28 +71,40 @@ export default function AddTraining() {
     const displayedDate = `${dayOfTheMonth}.${monthNumber}.${yearNumber} - ${dayNames[selectedDate.getDay()]}`;
 
     useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetchLastTrainings(user?.userId!);
-            setLastTrainingDocs(response);
+        const setTrainingInProgress = async () => {
+            await AsyncStorage.setItem(TRAINING_IN_PROGRESS_KEY, 'true');
+            dispatch(trainingActions.setInProgress(true));
         }
 
-        fetchData();
-    }, []);
+        setTrainingInProgress();
+    }, [dispatch]);
 
+    useEffect(() => {
+        dispatch(getLastTrainings(user?.userId));
+    }, [dispatch, user]);
+
+    const resetTraining = () => {
+        dispatch(trainingActions.setInProgress(false));
+        dispatch(trainingActions.resetTrainingTime());
+        dispatch(exerciseActions.cleanExercises());
+        timerRef.current?.resetTimer();
+    }
 
     const handleAddExerciseSelect = (exerciseNames: string[]) => {
         if (exerciseNames.length > 0) {
-            setExerciseSelects((prevExercises) => {
-                const newExercises = exerciseNames.map((exercise, index) => ({
-                    id: Date.now() + index,
-                    exerciseName: exercise,
-                }));
+            const newExercises = exerciseNames.map((exercise, index) => ({
+                id: Date.now() + index,
+                exerciseName: exercise,
+            }));
 
-                return [...prevExercises, ...newExercises];
-            });
+            dispatch(exerciseActions.appendExercises(newExercises));
         }
 
         setIsModalVisible(false);
+    };
+
+    const handleRemoveExerciseSelect = (id: number) => {
+        dispatch(exerciseActions.removeExercise(id));
     };
 
     const handleOpenModal = () => {
@@ -89,51 +115,74 @@ export default function AddTraining() {
         setIsModalVisible(false);
     }
 
-    const handleRemoveExerciseSelect = (id: number) => {
-        setExerciseSelects(prev => prev.filter(exercise => exercise.id !== id));
-        delete exerciseRefs.current[id];
-    };
+    const handlePauseTimer = async () => {
+        const timerIsRunning = await AsyncStorage.getItem(TIMER_IS_RUNNING_KEY);
 
-    const handlePauseTimer = () => {
-        setTimerIsRunning(wasRunning => {
-            if (!wasRunning) {
-                setBgClass("bg-secondaryGreen");
-            } else {
-                setBgClass("bg-secondaryBrown");
-            }
-
-            return !wasRunning;
-        });
+        if (timerIsRunning === 'true') {
+            await AsyncStorage.setItem(TIMER_IS_RUNNING_KEY, 'false');
+            await AsyncStorage.setItem(BG_CLASS_KEY, "bg-secondaryBrown");
+            dispatch(trainingActions.setBgClass("bg-secondaryBrown"));
+            dispatch(timerActions.setIsRunning(false));
+        } else {
+            await AsyncStorage.setItem(TIMER_IS_RUNNING_KEY, 'true');
+            await AsyncStorage.setItem(BG_CLASS_KEY, "bg-secondaryGreen");
+            dispatch(trainingActions.setBgClass("bg-secondaryGreen"));
+            dispatch(timerActions.setIsRunning(true));
+        }
     }
 
     const handleSwitchBgClass = (bgClass: BackgroundClassType) => {
-        setBgClass(bgClass);
+        dispatch(trainingActions.setBgClass(bgClass));
     }
 
     const handleSaveTraining = async () => {
         try {
-            const exercises = Object.values(exerciseRefs.current).map(ref => ref.getExercise()) as ExerciseType[];
+            if (Object.values(exerciseSelects).length > 0) {
+                let anyErrors = false;
+                const exercises: Record<number, ExerciseType> = {};
+                Object.entries(exerciseSelects).forEach(([id, exercise]) => {
+                    const series = exercise.series.map((serie) => {
+                        const isDoneError = serie.isDone ? false : true;
+                        const repsError = serie.reps ? false : true;
+                        const weightError = serie.weight ? false : true;
 
-            exercises.forEach(exercise => {
-                exercise?.series.forEach((serie) => {
-                    if (!serie.isDone || !serie.reps || !serie.weight) {
-                        Vibration.vibrate();
-                        throw new Error("Nie uzupełniono wszystkich serii");
+
+                        if (isDoneError || repsError || weightError) {
+                            anyErrors = true;
+                        }
+                        return {
+                            ...serie,
+                            isDoneError,
+                            repsError,
+                            weightError,
+                        }
+                    })
+
+                    exercises[Number(id)] = {
+                        exerciseName: exercise.exerciseName,
+                        series,
                     }
                 })
-            })
 
-            const cleanedExercises = exercises.map((exercise) => {
-                const cleanedSeries = exercise.series.map(({ id, isDone, ...rest }) => rest)
-                return {
-                    exerciseName: exercise.exerciseName,
-                    series: cleanedSeries,
+                if (anyErrors) {
+                    dispatch(exerciseActions.replaceExercises(exercises))
+                    Vibration.vibrate();
+                    throw new Error("Uzupełnij wszystkie pola");
                 }
-            });
 
-            if (exercises.length > 0) {
-                await updateUserTraining(user!, cleanedExercises, selectedDate.toISOString());
+                const cleanedExercises = Object.values(exercises).map((exercise) => {
+                    const cleanedSeries = exercise.series.map(({ reps, weight, ...rest }) => ({ reps, weight }))
+                    return {
+                        exerciseName: exercise.exerciseName,
+                        series: cleanedSeries,
+                    }
+                });
+                console.log(cleanedExercises);
+
+                await updateUserTraining(user, cleanedExercises, selectedDate.toISOString());
+                resetTraining();
                 router.dismiss(1);
+                Alert.alert("Trening zapisany");
             } else {
                 throw Error("Dodaj ćwiczenie");
             }
@@ -156,7 +205,7 @@ export default function AddTraining() {
                 <View className="mb-4 flex-col">
                     <View className="flex-row justify-between mb-1">
                         <Text style={styles.title}>New Workout</Text>
-                        <Timer isRunning={timerIsRunning} mode="up" textProps={{ style: [styles.title, { opacity: timerIsRunning ? 1 : .4 }] }} />
+                        <Timer ref={timerRef} isRunning={timerIsRunning} mode="up" textProps={{ style: [styles.title, { opacity: timerIsRunning ? 1 : .4 }] }} />
                     </View>
                     <View>
                         <Text style={styles.subtitle}>{displayedDate}</Text>
@@ -164,21 +213,12 @@ export default function AddTraining() {
                 </View>
                 <View className="pb-4 flex-grow">
                     <ScrollView className="h-1" showsVerticalScrollIndicator={false}>
-                        {exerciseSelects.map((exercise) =>
+                        {Object.entries(exerciseSelects).map(([id, exercise]) =>
                             <ExerciseDetails
-                                ref={el => {
-                                    if (el) {
-                                        exerciseRefs.current[exercise.id] = {
-                                            getExercise: el.getExercise,
-                                        };
-                                    } else {
-                                        delete exerciseRefs.current[exercise.id];
-                                    }
-                                }}
-                                key={exercise.id}
+                                key={id}
+                                exerciseId={Number(id)}
                                 exerciseName={exercise.exerciseName}
-                                trainingsDocs={lastTrainingsDocs}
-                                onRemove={() => handleRemoveExerciseSelect(exercise.id)}
+                                onRemove={() => handleRemoveExerciseSelect(Number(id))}
                                 switchBgClass={handleSwitchBgClass}
                             />
                         )}

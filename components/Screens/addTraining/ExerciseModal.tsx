@@ -3,9 +3,11 @@ import { Modal, View, Text, Pressable, StyleSheet, ScrollView } from "react-nati
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import SearchComponent from "./SearchComponent";
-import TrainingCard from "./TrainingCard";
+import ExerciseCard from "./ExerciseCard";
 import { trainingsRef } from "@/firebaseConfig";
 import { getDocs } from "firebase/firestore";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { exerciseActions } from "@/store/exercise/exercise-slice";
 
 type ExerciseModalProps = {
     isModalVisible: boolean,
@@ -13,20 +15,21 @@ type ExerciseModalProps = {
     onAddExercise: (exerciseName: string[]) => void,
 }
 
-type TrainingsType = {
+export type AvailableExerciseType = {
     name: string;
     category: string[];
 }
 
 const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, onAddExercise }) => {
     const [searchText, setSearchText] = useState("");
-    const [selectedTrainings, setSelectedTrainings] = useState<string[]>([]);
-    const [trainings, setTrainings] = useState<TrainingsType[]>([]);
+    const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+    const availableExercises = useAppSelector(state => state.exercise.availableExercises);
+    const dispatch = useAppDispatch();
 
-    const groupedTrainings = trainings
+    const groupedAvailableExercises = availableExercises
         .filter(training => training.name.toLowerCase().includes(searchText.toLowerCase()))
         .sort((a, b) => a.name.localeCompare(b.name))
-        .reduce((acc: Record<string, TrainingsType[]>, training) => {
+        .reduce((acc: Record<string, AvailableExerciseType[]>, training) => {
             const letter = training.name[0].toUpperCase();
             if (!acc[letter]) acc[letter] = [];
             acc[letter].push(training);
@@ -37,25 +40,25 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
         setSearchText(value);
     }
 
-    const handleSelectTraining = (name: string) => {
-        setSelectedTrainings((currentSelectedTrainings) => {
-            const newSelectedTrainingss =
-                currentSelectedTrainings.includes(name)
-                    ? currentSelectedTrainings.filter(currentSelectedTrainings => currentSelectedTrainings !== name)
-                    : [...currentSelectedTrainings, name];
+    const handleSelectExercise = (name: string) => {
+        setSelectedExercises((currentSelectedExercises) => {
+            const newSelectedExercises =
+                currentSelectedExercises.includes(name)
+                    ? currentSelectedExercises.filter(currentSelectedExercises => currentSelectedExercises !== name)
+                    : [...currentSelectedExercises, name];
 
-            return newSelectedTrainingss;
+            return newSelectedExercises;
         });
     }
 
-    const fetchTrainings = async () => {
+    const fetchAvailableExercises = async () => {
         const docSnap = await getDocs(trainingsRef);
-        const trainings = docSnap.docs.map(training => training.data()) as TrainingsType[];
-        setTrainings(trainings);
+        const data = docSnap.docs.map(training => training.data()) as AvailableExerciseType[];
+        dispatch(exerciseActions.setAvailableExercises(data));
     }
 
     useEffect(() => {
-        fetchTrainings();
+        fetchAvailableExercises();
     }, [])
 
     return (
@@ -74,18 +77,18 @@ const ExerciseModal: FC<ExerciseModalProps> = ({ isModalVisible, onCloseModal, o
                         <View className="p-4 h-full" style={{ backgroundColor: "#414141", padding: 16 }}>
                             <View className="flex-row justify-between mb-4">
                                 <Text style={styles.heading} className="uppercase text-white">Add new exercise</Text>
-                                <Pressable onPress={() => onAddExercise(selectedTrainings)} className=""><Text className="uppercase text-sunny" style={styles.heading}>Add+</Text></Pressable>
+                                <Pressable onPress={() => onAddExercise(selectedExercises)} className=""><Text className="uppercase text-sunny" style={styles.heading}>Add+</Text></Pressable>
                             </View>
                             <SearchComponent searchText={searchText} onSearchChange={handleSearchChange} />
                             <ScrollView >
-                                {Object.keys(groupedTrainings).map(letter => (
+                                {Object.keys(groupedAvailableExercises).map(letter => (
                                     <View key={letter} className="mb-4">
                                         <View className="flex-row items-center mb-4">
                                             <Text style={styles.letterHeading}>{letter}</Text>
                                             <View className="h-0.5 w-full bg-white" />
                                         </View>
-                                        {groupedTrainings[letter].map(training => (
-                                            <TrainingCard key={training.name} trainingName={training.name} trainingCategory={training.category} selectedTrainings={selectedTrainings} onSelectTraining={handleSelectTraining} />
+                                        {groupedAvailableExercises[letter].map(exercise => (
+                                            <ExerciseCard key={exercise.name} exerciseName={exercise.name} exerciseCategory={exercise.category} selectedExercises={selectedExercises} onSelectedExercise={handleSelectExercise} />
                                         ))}
                                     </View>
                                 ))}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Image, Alert, Vibration } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Image, Alert, Vibration, Modal } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { router } from "expo-router";
 import { ButtonComponent } from "@/components/Buttons/ButtonComponent";
@@ -230,7 +230,15 @@ export default function AddTraining() {
                     <ButtonComponent title={`${timerIsRunning ? "Pause" : "Resume"}`} variant="secondary" onPress={handlePauseTimer} />
                 </View>
             </View>
-            <ExerciseModal onCloseModal={handleCloseModal} isModalVisible={isModalVisible} onAddExercise={handleAddExerciseSelect} />
+            <Modal
+                animationType="fade"
+                transparent={true}
+                className="bg-transparent gowno p-12"
+                visible={isModalVisible}
+                onRequestClose={handleCloseModal}
+            >
+                <ExerciseModal onAddExercise={handleAddExerciseSelect} />
+            </Modal>
         </View>
     );
 }

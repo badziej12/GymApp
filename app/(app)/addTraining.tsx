@@ -233,7 +233,7 @@ export default function AddTraining() {
             <Modal
                 animationType="fade"
                 transparent={true}
-                className="bg-transparent gowno p-12"
+                className="bg-transparent p-12"
                 visible={isModalVisible}
                 onRequestClose={handleCloseModal}
             >

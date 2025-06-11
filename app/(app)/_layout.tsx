@@ -10,7 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trainingActions } from "@/store/training/training-slice";
 import { timerActions } from "@/store/timer/timer-slice";
 import { BackgroundClassType } from "@/types";
-import { BG_CLASS_KEY, REST_EXERCISE_ID, TIMER_IS_RUNNING_KEY, TRAINING_EXERCISES_KEY, TRAINING_IN_PROGRESS_KEY } from "@/async-storage/keys";
+import { BG_CLASS_KEY, REST_DURATION_KEY, REST_EXERCISE_ID, TIMER_IS_RUNNING_KEY, TRAINING_EXERCISES_KEY, TRAINING_IN_PROGRESS_KEY } from "@/async-storage/keys";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
 
 export default function _layout() {
@@ -26,6 +26,8 @@ export default function _layout() {
         const timerIsRunning = await AsyncStorage.getItem(TIMER_IS_RUNNING_KEY);
         const restExerciseId = await AsyncStorage.getItem(REST_EXERCISE_ID);
         const trainingExercises = await AsyncStorage.getItem(TRAINING_EXERCISES_KEY);
+        const restDuration = await AsyncStorage.getItem(REST_DURATION_KEY);
+        restDuration && dispatch(timerActions.setCurrentRestTimeDuration(parseInt(restDuration)));
         bgClass && dispatch(trainingActions.setBgClass(bgClass));
         timerIsRunning === "true" && dispatch(timerActions.setIsRunning(true));
         restExerciseId && dispatch(timerActions.setRestExerciseId(parseInt(restExerciseId)));

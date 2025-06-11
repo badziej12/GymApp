@@ -5,7 +5,7 @@ import { startExerciseRestWithAsyncStorage } from "@/store/timer/timer-actions/s
 import { trainingActions } from "@/store/training/training-slice";
 import { formatTime } from "@/utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Vibration, View, Text } from "react-native";
 
 type RestTimerProps = {
@@ -20,29 +20,35 @@ const RestTimer: FC<RestTimerProps> = ({ duration, exerciseId, textProps }) => {
     const [time, setTime] = useState(duration);
     const dispatch = useAppDispatch();
 
-    const startTimer = () => {
-        dispatch(startExerciseRestWithAsyncStorage(exerciseId));
-    };
+    const startTimer = useCallback(() => {
+        dispatch(startExerciseRestWithAsyncStorage(exerciseId, duration));
+    }, [dispatch, exerciseId, duration]);
 
-    const resetTimer = async () => {
+    const resetTimer = useCallback(async () => {
         dispatch(stopExeriseRestWithAsyncStorage());
         Vibration.vibrate();
-    };
+    }, [dispatch]);
+
+    useEffect(() => {
+        setTime(duration);
+    }, [duration])
 
     useEffect(() => {
         const loadTimer = async () => {
+            console.log(currentRestExerciseId);
             const storedStart = await AsyncStorage.getItem(TIMER_REST_START_KEY);
             if (storedStart) {
                 const startTime = parseInt(storedStart, 10);
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                setTime(elapsed);
+                const remaining = duration - elapsed;
+                setTime(remaining);
             } else {
                 startTimer();
             }
         };
 
         currentRestExerciseId === exerciseId && loadTimer();
-    }, []);
+    }, [exerciseId, startTimer, currentRestExerciseId]);
 
     useEffect(() => {
         if (currentRestExerciseId !== exerciseId) {
@@ -67,10 +73,10 @@ const RestTimer: FC<RestTimerProps> = ({ duration, exerciseId, textProps }) => {
 
             intervalRef.current = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - startTime!) / 1000);
-
-                setTime(elapsed);
-
                 const remaining = duration - elapsed;
+
+                setTime(remaining);
+
                 if (remaining <= 0) {
                     clearInterval(intervalRef.current!);
                     intervalRef.current = null;
@@ -87,15 +93,11 @@ const RestTimer: FC<RestTimerProps> = ({ duration, exerciseId, textProps }) => {
                 intervalRef.current = null;
             };
         };
-    }, [currentRestExerciseId]);
-
-    let displayTime = time;
-
-    displayTime = intervalRef.current ? Math.max(duration - time, 0) : time;
+    }, [currentRestExerciseId, exerciseId, duration, resetTimer, dispatch]);
 
     return (
         <View>
-            <Text {...textProps}>{formatTime(displayTime)}</Text>
+            <Text {...textProps}>{formatTime(time)}</Text>
         </View>
     )
 }

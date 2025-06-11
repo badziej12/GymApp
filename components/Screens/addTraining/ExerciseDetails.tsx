@@ -8,6 +8,9 @@ import { CleanExerciseType, SerieRowType, SerieType } from "@/types";
 import RestTimer from "@/components/Timer/RestTimer";
 import { stopExeriseRestWithAsyncStorage } from "@/store/timer/timer-actions/remove-rest-exercise-id";
 import { startExerciseRestWithAsyncStorage } from "@/store/timer/timer-actions/set-rest-exercise-id";
+import { collection, doc, getDocs, query, where } from "firebase/firestore";
+import { usersRef } from "@/firebaseConfig";
+import { fetchUserSettings } from "@/firebase/fetch-user-settings";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
@@ -35,8 +38,26 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exer
     const serieRows = useAppSelector(state => state.exercise.exercises[exerciseId].series) || emptyArray;
     const lastTrainings = useAppSelector(state => state.training.lastTrainings);
     const currentRestExerciseId = useAppSelector(state => state.timer.restExerciseId);
+    const user = useAppSelector(state => state.auth.user);
     const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
+    const [restDuration, setRestDuration] = useState<number>(30);
     const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        const setExerciseRestTime = async () => {
+            if (user) {
+                const doc = await fetchUserSettings(user.userId, "restTime");
+                if (doc) {
+                    const restTimeForExercises = doc.data().exerciseNames;
+                    const restTime = restTimeForExercises[exerciseName];
+                    console.log(restTime);
+                    if (restTime) setRestDuration(restTime);
+                }
+            }
+        }
+
+        setExerciseRestTime();
+    }, [user]);
 
     useEffect(() => {
         const getPreviousResults = () => {
@@ -125,7 +146,7 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exer
         if (currentRestExerciseId === exerciseId) {
             dispatch(stopExeriseRestWithAsyncStorage());
         } else {
-            dispatch(startExerciseRestWithAsyncStorage(exerciseId));
+            dispatch(startExerciseRestWithAsyncStorage(exerciseId, restDuration));
         }
     }
 
@@ -168,7 +189,7 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exer
             </Pressable>
             <Pressable onPress={handleRestStart} style={styles.restButton} className="flex-row justify-between px-2 py-1">
                 <Text style={styles.restButtonCopy}>Rest</Text>
-                <RestTimer exerciseId={exerciseId} textProps={{ style: styles.restButtonCopy }} duration={10} />
+                <RestTimer exerciseId={exerciseId} textProps={{ style: styles.restButtonCopy }} duration={restDuration} />
             </Pressable>
         </View>
     )

@@ -1,15 +1,13 @@
 import { FC, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Vibration } from "react-native";
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Timer from "../../Timer/Timer";
 import SerieRow from "./SerieRow";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { exerciseActions } from "@/store/exercise/exercise-slice";
-import { timerActions } from "@/store/timer/timer-slice";
-import { trainingActions } from "@/store/training/training-slice";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BackgroundClassType, CleanExerciseType, SerieRowType, SerieType } from "@/types";
-import { BG_CLASS_KEY, REST_IS_RUNNING_KEY, TRAINING_EXERCISES_KEY } from "@/async-storage/keys";
+import { CleanExerciseType, SerieRowType, SerieType } from "@/types";
+import RestTimer from "@/components/Timer/RestTimer";
+import { stopExeriseRestWithAsyncStorage } from "@/store/timer/timer-actions/remove-rest-exercise-id";
+import { startExerciseRestWithAsyncStorage } from "@/store/timer/timer-actions/set-rest-exercise-id";
 
 type ExerciseDetailsProps = {
     onRemove: () => void;
@@ -34,13 +32,11 @@ const getLastTrainingWithExercise = (trainings: { date: string, exercises: Clean
 }
 
 const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exerciseName }) => {
-    const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
-    const trainingExercises = useAppSelector(state => state.exercise.exercises);
+    const serieRows = useAppSelector(state => state.exercise.exercises[exerciseId].series) || emptyArray;
     const lastTrainings = useAppSelector(state => state.training.lastTrainings);
-    const restIsRunning = useAppSelector(state => state.timer.isRest);
+    const currentRestExerciseId = useAppSelector(state => state.timer.restExerciseId);
+    const [lastResults, setLastResults] = useState<SerieType[] | null>(null);
     const dispatch = useAppDispatch();
-
-    const serieRows = trainingExercises[exerciseId].series || emptyArray;
 
     useEffect(() => {
         const getPreviousResults = () => {
@@ -126,10 +122,11 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exer
     };
 
     const handleRestStart = async () => {
-        await AsyncStorage.setItem(REST_IS_RUNNING_KEY, 'true');
-        await AsyncStorage.setItem(BG_CLASS_KEY, "bg-azure");
-        dispatch(trainingActions.setBgClass("bg-azure"));
-        dispatch(timerActions.setIsRest(true));
+        if (currentRestExerciseId === exerciseId) {
+            dispatch(stopExeriseRestWithAsyncStorage());
+        } else {
+            dispatch(startExerciseRestWithAsyncStorage(exerciseId));
+        }
     }
 
     return (
@@ -171,7 +168,7 @@ const ExerciseDetails: FC<ExerciseDetailsProps> = (({ onRemove, exerciseId, exer
             </Pressable>
             <Pressable onPress={handleRestStart} style={styles.restButton} className="flex-row justify-between px-2 py-1">
                 <Text style={styles.restButtonCopy}>Rest</Text>
-                <Timer mode="down" isRunning={restIsRunning} textProps={{ style: styles.restButtonCopy }} duration={10} />
+                <RestTimer exerciseId={exerciseId} textProps={{ style: styles.restButtonCopy }} duration={10} />
             </Pressable>
         </View>
     )

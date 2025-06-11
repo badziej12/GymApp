@@ -3,13 +3,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 type TimerSliceState = {
     isRunning: boolean;
     restTime: number;
-    isRest: boolean;
+    restExerciseId: number | null;
 }
 
 const initialState: TimerSliceState = {
-    isRunning: false,
+    isRunning: true,
     restTime: 0,
-    isRest: false,
+    restExerciseId: null,
 };
 
 const timerSlice = createSlice({
@@ -19,8 +19,8 @@ const timerSlice = createSlice({
         setIsRunning(state, action: PayloadAction<boolean>) {
             state.isRunning = action.payload;
         },
-        setIsRest(state, action: PayloadAction<boolean>) {
-            state.isRest = action.payload;
+        setRestExerciseId(state, action: PayloadAction<number | null>) {
+            state.restExerciseId = action.payload;
         },
         setRestTime(state, action: PayloadAction<number>) {
             state.restTime = action.payload;

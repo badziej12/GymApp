@@ -8,15 +8,22 @@ const TrainingBanner = () => {
     const timerIsRunning = useAppSelector(state => state.timer.isRunning);
     const restExerciseId = useAppSelector(state => state.timer.restExerciseId);
     const bgClass = useAppSelector(state => state.training.bgClass);
+    const restDuration = useAppSelector(state => state.timer.currentRestTimeDuration);
 
     const onPress = () => {
         router.push("/addTraining");
     }
 
+    let showRestTimer = false;
+
+    if (restExerciseId && restDuration > 0) {
+        showRestTimer = true;
+    }
+
     return (
         <Pressable onPress={onPress} className={`${bgClass} h-24 w-screen p-4 justify-between items-center flex-row`}>
             <Text style={styles.title}>Trening</Text>
-            {restExerciseId && <RestTimer exerciseId={restExerciseId} duration={10} textProps={{ style: [styles.title, { fontSize: 16 }] }} />}
+            {showRestTimer && <RestTimer exerciseId={restExerciseId!} duration={restDuration} textProps={{ style: [styles.title, { fontSize: 16 }] }} />}
             <Timer isRunning={timerIsRunning} textProps={{ style: [styles.title, { opacity: restExerciseId ? .5 : 1 }] }} />
         </Pressable>
     )
